@@ -11,3 +11,4 @@ export const MAX_SAVED_COLORS = 12; // 색 선택 창에 저장해 두는 색의
 export const MIN_COLORS = 4;
 export const MAX_COLORS = 32;
 export const ART_SIZE_PRESETS = [8, 16, 32, 64] as const;
+export const EXPORT_SCALES = [1, 2, 4, 8] as const; // PNG 저장 배율. 1이 원래 해상도(기본)

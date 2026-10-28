@@ -94,6 +94,22 @@ input[type='number'] {
   font: inherit;
 }
 
+.select {
+  min-height: 32px;
+  padding: var(--space-1) var(--space-2);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--desk);
+  color: var(--ink);
+  font: inherit;
+}
+
+.select:disabled {
+  color: var(--ink-muted);
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
 input[type='range'],
 input[type='checkbox'] {
   accent-color: var(--blue);

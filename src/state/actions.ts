@@ -1,3 +1,4 @@
+import { savePixelPng } from '../io/exportPng';
 import { loadImage, LoadError } from '../io/loadImage';
 import { pixelate } from '../core/pixelate';
 import type { ConvertOptions, PixelBuffer } from '../core/types';
@@ -53,6 +54,18 @@ export function createActions(store: Store<AppState>) {
 
     setOptions(patch: Partial<ConvertOptions>): void {
       store.setState({ convertOptions: { ...store.getState().convertOptions, ...patch } });
+    },
+
+    /** 변환 결과를 PNG 파일로 저장한다. scale 1이 원래 해상도. */
+    async exportResult(scale: number): Promise<void> {
+      const { converted } = store.getState();
+      if (!converted) return;
+      try {
+        await savePixelPng(converted.image, scale);
+        store.setState({ notice: { kind: 'info', code: 'saved' } });
+      } catch {
+        store.setState({ notice: { kind: 'error', code: 'save-failed' } });
+      }
     },
 
     async convert(): Promise<void> {

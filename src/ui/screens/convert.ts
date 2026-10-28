@@ -1,4 +1,10 @@
-import { ART_SIZE_PRESETS, MAX_ART_SIZE, MAX_COLORS, MIN_COLORS } from '../../config/constants';
+import {
+  ART_SIZE_PRESETS,
+  EXPORT_SCALES,
+  MAX_ART_SIZE,
+  MAX_COLORS,
+  MIN_COLORS,
+} from '../../config/constants';
 import type { DitherMode } from '../../core/types';
 import type { AppState } from '../../state/store';
 import { renderNotice } from '../components/notice';
@@ -143,11 +149,25 @@ export const convertScreen: Screen = (host, { store, actions }) => {
   const drawOnSourceButton = h('button', { class: 'btn', type: 'button' }, copy.drawOnSource);
   drawOnSourceButton.addEventListener('click', () => actions.editSource());
 
+  // ── PNG 저장: 원래 해상도가 기본, 2·4·8배 확대 선택 가능 ──
+  const scaleOptions = EXPORT_SCALES.map((scale) => ({
+    scale,
+    el: h('option', { value: String(scale) }),
+  }));
+  const scaleSelect = h(
+    'select',
+    { class: 'select', 'aria-label': copy.exportScale },
+    ...scaleOptions.map((o) => o.el),
+  );
+  const saveButton = h('button', { class: 'btn', type: 'button' }, copy.savePng);
+  saveButton.addEventListener('click', () => void actions.exportResult(Number(scaleSelect.value)));
+  const exportControls = h('span', { class: 'export-controls' }, scaleSelect, saveButton);
+
   const panes = h(
     'section',
     { class: 'panes' },
     h('figure', { class: 'pane' }, h('figcaption', { class: 'pane-caption' }, copy.original, drawOnSourceButton), sourceWrap),
-    h('figure', { class: 'pane' }, h('figcaption', { class: 'pane-caption' }, copy.result), resultWrap),
+    h('figure', { class: 'pane' }, h('figcaption', { class: 'pane-caption' }, copy.result, exportControls), resultWrap),
   );
 
   host.append(h('div', { class: 'screen convert' }, stepBar(actions), options, notice, panes, status));
@@ -207,6 +227,16 @@ export const convertScreen: Screen = (host, { store, actions }) => {
       if (state.converted) drawBuffer(resultCanvas, state.converted.image);
     }
     const hasResult = state.converted !== null;
+
+    // 저장 크기 선택지에는 실제로 저장될 크기를 함께 보여 준다(예: "4배 (128×128)")
+    scaleOptions.forEach(({ scale, el }) => {
+      const label = scale === 1 ? copy.exportScaleOriginal : `${scale}배`;
+      const image = state.converted?.image;
+      el.textContent = image ? `${label} (${image.width * scale}×${image.height * scale})` : label;
+    });
+    scaleSelect.toggleAttribute('disabled', !hasResult);
+    saveButton.toggleAttribute('disabled', !hasResult);
+
     resultCanvas.classList.toggle('is-hidden', !hasResult);
     resultEmpty.classList.toggle('is-hidden', hasResult);
 

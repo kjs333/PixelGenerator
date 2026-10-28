@@ -8,7 +8,9 @@ export type NoticeCode =
   | 'unsupported-type'
   | 'decode-failed'
   | 'resized'
-  | 'convert-failed';
+  | 'convert-failed'
+  | 'saved'
+  | 'save-failed';
 
 export interface Notice {
   kind: 'error' | 'info';
