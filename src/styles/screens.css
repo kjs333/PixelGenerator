@@ -1,0 +1,344 @@
+/* ── 시작 화면 ── */
+.screen.start {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  align-items: center;
+  justify-content: center;
+  min-height: 100%;
+  padding: var(--space-8);
+}
+
+.start-logo {
+  position: absolute;
+  top: var(--space-6);
+  left: var(--space-6);
+  font-family: var(--font-pixel);
+  font-size: 22px;
+}
+
+.choices {
+  display: grid;
+  grid-template-columns: repeat(2, 280px);
+  gap: var(--space-4);
+}
+
+/* 두 선택지는 같은 크기, 같은 무게 */
+.choice {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  align-items: center;
+  justify-content: center;
+  min-height: 200px;
+  padding: var(--space-6);
+  border: 1px dashed var(--line);
+  border-radius: var(--radius);
+  background: var(--panel);
+  color: var(--ink);
+  font: inherit;
+  text-align: center;
+  cursor: pointer;
+}
+
+.choice:hover {
+  border-color: var(--ink-muted);
+}
+
+.choice.is-over {
+  border: 2px solid var(--blue);
+}
+
+.choice-title {
+  font-size: 20px;
+}
+
+/* ── 단계 바 ── */
+.screen.convert {
+  display: grid;
+  grid-template-rows: auto auto auto 1fr auto;
+  height: 100%;
+}
+
+.stepbar {
+  display: flex;
+  gap: var(--space-6);
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--line);
+  background: var(--panel);
+}
+
+.stepbar-left {
+  display: flex;
+  gap: var(--space-4);
+  align-items: center;
+}
+
+.logo {
+  border: 0;
+  background: none;
+  color: var(--ink);
+  font-family: var(--font-pixel);
+  font-size: 22px;
+  cursor: pointer;
+}
+
+.steps {
+  display: flex;
+  gap: var(--space-1);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-family: var(--font-pixel);
+  font-size: 11px;
+}
+
+.step {
+  padding: var(--space-2) var(--space-4);
+  border: 1px solid var(--line);
+  color: var(--ink-muted);
+}
+
+.step.is-current {
+  border-color: var(--blue);
+  background: var(--blue);
+  color: var(--on-blue);
+}
+
+/* ── 옵션 줄 ── */
+.options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3) var(--space-6);
+  align-items: center;
+  padding: var(--space-3) var(--space-4);
+  background: var(--panel);
+}
+
+.option-group {
+  display: flex;
+  gap: var(--space-2);
+  align-items: center;
+}
+
+.label {
+  color: var(--ink-muted);
+}
+
+.seg-group {
+  display: flex;
+  gap: var(--space-1);
+}
+
+/* 설명 말풍선: "i" 버튼 아래에 열린다. 그림자 없이 면과 테두리로만 구분 */
+.info {
+  position: relative;
+  display: inline-flex;
+}
+
+.info-btn {
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  border: 1px solid var(--ink-muted);
+  border-radius: 50%;
+  background: none;
+  color: var(--ink-muted);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.info-btn:hover {
+  border-color: var(--ink);
+  color: var(--ink);
+}
+
+.info-btn[aria-expanded='true'] {
+  border-color: var(--blue);
+  color: var(--blue);
+}
+
+.tooltip {
+  position: absolute;
+  top: calc(100% + var(--space-2));
+  left: 0;
+  z-index: 10;
+  width: 340px;
+  max-width: 90vw;
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--panel);
+  color: var(--ink);
+}
+
+.tooltip p {
+  margin: var(--space-2) 0;
+}
+
+.tooltip ul {
+  margin: var(--space-2) 0;
+  padding-left: var(--space-4);
+}
+
+.tooltip li + li {
+  margin-top: var(--space-1);
+}
+
+.custom-size {
+  display: inline-flex;
+  gap: var(--space-1);
+  align-items: center;
+}
+
+.value {
+  min-width: 2ch;
+  font-variant-numeric: tabular-nums;
+}
+
+/* 변환하기 버튼은 옵션 줄 오른쪽 끝에 둔다 */
+.options > .btn-primary {
+  margin-left: auto;
+}
+
+/* ── 좌우 캔버스 ── */
+.screen.convert > .notice {
+  padding: var(--space-2) var(--space-4) 0;
+}
+
+.panes {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-4);
+  min-height: 0;
+  padding: var(--space-4);
+}
+
+.pane {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  min-width: 0;
+  min-height: 0;
+  margin: 0;
+}
+
+.pane figcaption {
+  color: var(--ink-muted);
+}
+
+.pane-caption {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 32px;
+}
+
+.canvas-wrap {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+  min-height: 0;
+  overflow: hidden;
+  /* 밝은 체크무늬 종이: 투명 영역이 보인다 */
+  background-color: var(--paper);
+  background-image:
+    linear-gradient(45deg, var(--paper-check) 25%, transparent 25%, transparent 75%, var(--paper-check) 75%),
+    linear-gradient(45deg, var(--paper-check) 25%, transparent 25%, transparent 75%, var(--paper-check) 75%);
+  background-position: 0 0, 8px 8px;
+  background-size: 16px 16px;
+}
+
+/* 원본은 "보기만" 신호로 점선 테두리 */
+.canvas-wrap.is-source {
+  border: 1px dashed var(--ink-muted);
+}
+
+.view-canvas {
+  display: block;
+}
+
+.view-canvas.pixelated {
+  image-rendering: pixelated;
+}
+
+.empty {
+  margin: 0;
+  padding: var(--space-4);
+  background: var(--panel);
+}
+
+.statusbar {
+  min-height: 32px;
+  padding: var(--space-2) var(--space-4);
+  border-top: 1px solid var(--line);
+  background: var(--panel);
+  color: var(--ink-muted);
+}
+
+/* ── 직접 그리기 ── */
+.screen.draw {
+  display: grid;
+  grid-template-rows: auto 1fr;
+  height: 100%;
+}
+
+.draw-bar {
+  display: flex;
+  gap: var(--space-6);
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--line);
+  background: var(--panel);
+}
+
+.draw-tools {
+  display: flex;
+  gap: var(--space-4);
+  align-items: center;
+}
+
+.field {
+  display: flex;
+  gap: var(--space-2);
+  align-items: center;
+  color: var(--ink-muted);
+}
+
+.draw-stage {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 0;
+  padding: var(--space-4);
+  overflow: auto;
+}
+
+.draw-canvas-wrap {
+  position: relative;
+  line-height: 0;
+}
+
+.draw-canvas {
+  display: block;
+  background: var(--paper);
+  cursor: none; /* 기본 커서 대신 펜 굵기만 한 원(.pen-cursor)을 보여 준다 */
+  touch-action: none;
+}
+
+/* 펜·지우개 굵기만 한 원. 밝은 배경과 어두운 배경 모두에서 보이게 검정 테두리 + 흰 바깥선 */
+.pen-cursor {
+  position: absolute;
+  box-sizing: border-box;
+  border: 1px solid #000;
+  border-radius: 50%;
+  outline: 1px solid #fff;
+  pointer-events: none;
+}

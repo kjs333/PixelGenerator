@@ -1,0 +1,26 @@
+/* DESIGN A3 디자인 토큰. 색은 전부 WCAG AA 대비를 확인한 값이다. */
+:root {
+  --desk: #2b2e33;
+  --panel: #363a40;
+  --ink: #e8e9eb;
+  --ink-muted: #a3a8b0;
+  --blue: #7fc4e8;
+  --on-blue: #14232c;
+  --guide: #f2b33d;
+  --paper: #f2f2ee;
+  --paper-check: #dadad4;
+  --line: #4a4f57;
+
+  /* 글꼴: Galmuri11 / Pretendard는 public/fonts에 넣고 @font-face를 추가하면 적용된다(CSP 때문에 self-host). */
+  --font-pixel: 'Galmuri11', 'Pretendard', 'Malgun Gothic', system-ui, sans-serif;
+  --font-ui: 'Pretendard', 'Malgun Gothic', system-ui, -apple-system, 'Segoe UI', sans-serif;
+
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-6: 24px;
+  --space-8: 32px;
+
+  --radius: 2px;
+}

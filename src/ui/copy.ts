@@ -1,0 +1,70 @@
+import type { NoticeCode } from '../state/store';
+
+/** 화면에 나오는 문구는 전부 여기에 모은다(DESIGN A6). 같은 행동은 끝까지 같은 이름을 쓴다. */
+export const copy = {
+  appName: 'Pixel Generator',
+  backToStart: '처음으로 돌아가기',
+
+  startTitle: '어떻게 시작할까요?',
+  uploadTitle: '이미지 올리기',
+  uploadHint: '여기로 끌어다 놓거나 클릭해서 고르세요',
+  uploadSpec: 'PNG·JPG·WebP, 10MB',
+  drawTitle: '직접 그리기',
+  drawHint: '빈 캔버스에서 자유롭게 그려요',
+  privacy: '사진은 이 컴퓨터 밖으로 전송되지 않아요.',
+
+  drawPen: '펜',
+  drawEraser: '지우개',
+  drawColor: '색',
+  drawSize: '굵기',
+  toConvert: '변환 단계로',
+  undo: '실행 취소',
+  redo: '다시 실행',
+  cancelDrawing: '그리기 취소',
+  drawOnSource: '원본에 그리기',
+
+  stepConvert: '① 변환',
+  stepAnimate: '② 레이어·애니메이션',
+  stepSheet: '③ 스프라이트 시트',
+  exportPng: 'PNG 내보내기',
+  exportDisabledTip: '스프라이트 시트를 만들면 내보낼 수 있어요',
+  stepNotReady: '아직 만들지 않은 단계예요',
+
+  resolution: '해상도',
+  customResolution: '직접 입력',
+  width: '가로',
+  height: '세로',
+  colors: '색 수',
+  dither: '디더링',
+  ditherNone: '없음',
+  ditherBayer: 'Bayer',
+  ditherFs: 'FS',
+  ditherInfoLabel: '디더링 설명 보기',
+  ditherInfoTitle: '디더링이란?',
+  ditherInfoIntro: '색 수가 적을 때, 팔레트의 두 색을 점무늬로 섞어 중간색처럼 보이게 하는 기법이에요.',
+  ditherInfoNone: '가장 가까운 색 하나로 칠해요. 면이 깔끔해서 그림·로고에 잘 맞아요.',
+  ditherInfoBayer: '정해진 격자 무늬로 섞어요. 레트로 느낌이고 무늬가 안정적이에요.',
+  ditherInfoFs: '자연스러운 점무늬로 섞어요(Floyd-Steinberg). 사진의 부드러운 명암에 잘 맞아요.',
+  ditherInfoNote: '디더링을 켜면 외톨이 정리는 쓸 수 없어요.',
+  cleanup: '외톨이 정리',
+  cleanupTip: '주변과 색이 모두 다른 칸을 주변 색으로 바꿔요',
+  cleanupDisabledTip: '디더링을 켜면 쓸 수 없어요',
+  convert: '변환하기',
+  converting: '변환 중…',
+  converted: '변환했어요',
+
+  original: '원본',
+  result: '픽셀 결과',
+  resultEmpty: '옵션을 고르고 “변환하기”를 눌러 보세요.',
+  statusZoom: '확대',
+  statusColors: '색',
+} as const;
+
+export const noticeText: Record<NoticeCode, string> = {
+  empty: '빈 파일은 열 수 없어요. 다른 파일을 골라 주세요.',
+  'too-large': '10MB보다 큰 파일은 열 수 없어요. 크기를 줄여서 다시 올려 주세요.',
+  'unsupported-type': 'PNG, JPG, WebP 파일만 열 수 있어요.',
+  'decode-failed': '이미지를 읽지 못했어요. 다른 파일로 다시 시도해 주세요.',
+  resized: '이미지가 커서 4096px에 맞게 줄였어요.',
+  'convert-failed': '변환하지 못했어요. 옵션을 바꿔서 다시 눌러 주세요.',
+};

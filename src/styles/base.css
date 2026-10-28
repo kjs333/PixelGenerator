@@ -1,0 +1,114 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#app {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  background: var(--desk);
+  color: var(--ink);
+  font-family: var(--font-ui);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+h1 {
+  margin: 0;
+  font-size: 28px;
+  font-weight: 600;
+}
+
+.muted {
+  color: var(--ink-muted);
+}
+
+.is-hidden {
+  display: none !important;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+/* 키보드 사용자용 포커스 링: 모든 조작 요소에 */
+:focus-visible {
+  outline: 2px solid var(--blue);
+  outline-offset: 2px;
+}
+
+/* 버튼: 그림자 없이 면의 밝기 차이로만 구분 */
+.btn {
+  min-height: 32px;
+  padding: var(--space-1) var(--space-3);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--panel);
+  color: var(--ink);
+  font: inherit;
+  cursor: pointer;
+}
+
+.btn:hover:not(:disabled) {
+  border-color: var(--ink-muted);
+}
+
+.btn:disabled {
+  color: var(--ink-muted);
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+/* --blue는 주 버튼 하나와 선택 상태에만 쓴다 */
+.btn-primary {
+  border-color: var(--blue);
+  background: var(--blue);
+  color: var(--on-blue);
+  font-weight: 600;
+}
+
+.btn[aria-pressed='true'] {
+  border: 2px solid var(--blue);
+  padding: calc(var(--space-1) - 1px) calc(var(--space-3) - 1px);
+}
+
+input[type='number'] {
+  width: 64px;
+  min-height: 32px;
+  padding: var(--space-1) var(--space-2);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--desk);
+  color: var(--ink);
+  font: inherit;
+}
+
+input[type='range'],
+input[type='checkbox'] {
+  accent-color: var(--blue);
+}
+
+/* 오류·안내: 색만으로 전하지 않고 아이콘 + 문장을 함께 */
+.notice {
+  display: flex;
+  gap: var(--space-2);
+  align-items: baseline;
+  min-height: 24px;
+  margin: 0;
+  color: var(--guide);
+}
+
+.notice:empty {
+  display: none;
+}

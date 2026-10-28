@@ -1,0 +1,12 @@
+export const MAX_FILE_BYTES = 10 * 1024 * 1024;
+export const MAX_SOURCE_SIZE = 4096;
+export const MAX_ART_SIZE = 256;
+export const FREEHAND_SIZE = 512;
+export const MAX_LAYERS = 10;
+export const MAX_FRAMES = 32;
+export const MAX_UNDO = 50;
+export const MAX_UNDO_BYTES = 128 * 1024 * 1024; // 되돌리기 기록 전체 메모리 상한
+export const CLEANUP_MAX_LUMA_DIFF = 48; // 외톨이 정리: 이 밝기 차이(0~255) 이하일 때만 주변 색으로 바꾼다
+export const MIN_COLORS = 4;
+export const MAX_COLORS = 32;
+export const ART_SIZE_PRESETS = [8, 16, 32, 64] as const;
