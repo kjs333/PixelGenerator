@@ -312,6 +312,173 @@
   color: var(--ink-muted);
 }
 
+/* ── 색 칸과 색 선택 창 ── */
+.swatch {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  box-sizing: border-box;
+  border: 1px solid var(--ink-muted);
+  border-radius: var(--radius);
+  vertical-align: middle;
+}
+
+.swatch.large {
+  width: 36px;
+  height: 24px;
+}
+
+.color-btn {
+  display: inline-flex;
+  align-items: center;
+  padding: var(--space-1) var(--space-2);
+}
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgb(0 0 0 / 55%);
+}
+
+.color-dialog {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  width: 288px;
+  padding: var(--space-4);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--panel);
+  color: var(--ink);
+}
+
+.dialog-title {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.sv-wrap {
+  position: relative;
+  width: 240px;
+  height: 160px;
+  line-height: 0;
+}
+
+.sv-canvas {
+  display: block;
+  width: 240px;
+  height: 160px;
+  cursor: crosshair;
+  touch-action: none;
+}
+
+/* 선택한 위치 표시: 검정 테두리 + 흰 바깥선이라 어떤 색 위에서도 보인다 */
+.sv-marker {
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  box-sizing: border-box;
+  margin: -6px 0 0 -6px;
+  border: 1px solid #000;
+  border-radius: 50%;
+  outline: 1px solid #fff;
+  pointer-events: none;
+}
+
+.hue-slider {
+  width: 240px;
+  height: 12px;
+  margin: 0;
+  border-radius: var(--radius);
+  background: linear-gradient(to right, #f00 0%, #ff0 17%, #0f0 33%, #0ff 50%, #00f 67%, #f0f 83%, #f00 100%);
+  appearance: none;
+}
+
+.hue-slider::-webkit-slider-thumb {
+  width: 8px;
+  height: 20px;
+  border: 2px solid #fff;
+  border-radius: var(--radius);
+  background: transparent;
+  outline: 1px solid #000;
+  appearance: none;
+}
+
+.hue-slider::-moz-range-thumb {
+  width: 4px;
+  height: 16px;
+  border: 2px solid #fff;
+  border-radius: var(--radius);
+  background: transparent;
+  outline: 1px solid #000;
+}
+
+.color-values {
+  display: flex;
+  gap: var(--space-3);
+  align-items: center;
+  justify-content: space-between;
+}
+
+.hex-input {
+  width: 96px;
+  min-height: 32px;
+  padding: var(--space-1) var(--space-2);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--desk);
+  color: var(--ink);
+  font: inherit;
+  font-variant-numeric: tabular-nums;
+}
+
+.hex-input.is-invalid {
+  border-color: var(--guide);
+}
+
+.field-error {
+  margin: 0;
+  color: var(--guide);
+}
+
+.compare {
+  display: flex;
+  gap: var(--space-2);
+  align-items: center;
+}
+
+.saved-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.saved-colors {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.swatch-btn {
+  padding: 0;
+  cursor: pointer;
+}
+
+.swatch-btn[aria-pressed='true'] {
+  border: 2px solid var(--blue);
+}
+
+.dialog-actions {
+  display: flex;
+  gap: var(--space-2);
+  justify-content: flex-end;
+}
+
 .draw-stage {
   display: flex;
   align-items: center;

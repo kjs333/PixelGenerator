@@ -54,7 +54,7 @@ export function createStore<T extends object>(initial: T): Store<T> {
 export const initialState: AppState = {
   step: 'start',
   source: null,
-  convertOptions: { width: 32, height: 32, colors: 8, dither: 'none', cleanup: true },
+  convertOptions: { width: 32, height: 32, colors: 8, dither: 'none', cleanup: false },
   converted: null,
   converting: false,
   notice: null,

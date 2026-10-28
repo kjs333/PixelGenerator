@@ -1,5 +1,12 @@
 import { describe, expect, test } from 'vitest';
-import { loadPenColor, parseHexColor, savePenColor } from '../../src/io/preferences';
+import { MAX_SAVED_COLORS } from '../../src/config/constants';
+import {
+  loadPenColor,
+  loadSavedColors,
+  parseHexColor,
+  savePenColor,
+  saveSavedColors,
+} from '../../src/io/preferences';
 
 /** 테스트용 가짜 저장소 */
 function fakeStorage(initial: Record<string, string> = {}) {
@@ -39,6 +46,52 @@ describe('parseHexColor', () => {
     expect(parseHexColor(null)).toBeNull();
     expect(parseHexColor(123456)).toBeNull();
     expect(parseHexColor({})).toBeNull();
+  });
+});
+
+describe('loadSavedColors / saveSavedColors', () => {
+  const KEY = 'pixel-generator.savedColors';
+
+  test('저장한 색 목록을 순서 그대로 다시 불러온다', () => {
+    const storage = fakeStorage();
+    saveSavedColors(['#ff0000', '#00ff00', '#0000ff'], storage);
+    expect(loadSavedColors(storage)).toEqual(['#ff0000', '#00ff00', '#0000ff']);
+  });
+
+  test('저장된 것이 없으면 빈 목록이다', () => {
+    expect(loadSavedColors(fakeStorage())).toEqual([]);
+  });
+
+  test('JSON이 깨졌거나 배열이 아니면 빈 목록이다', () => {
+    expect(loadSavedColors(fakeStorage({ [KEY]: '{깨진 json' }))).toEqual([]);
+    expect(loadSavedColors(fakeStorage({ [KEY]: '{"a":1}' }))).toEqual([]);
+    expect(loadSavedColors(fakeStorage({ [KEY]: '"#ff0000"' }))).toEqual([]);
+  });
+
+  test('올바른 색만 남기고 대소문자를 맞추며 중복을 없앤다', () => {
+    const storage = fakeStorage({
+      [KEY]: JSON.stringify(['#FF0000', 'red', 123, null, '#ff0000', '<script>', '#00ff00']),
+    });
+    expect(loadSavedColors(storage)).toEqual(['#ff0000', '#00ff00']);
+  });
+
+  test('저장 개수 상한을 넘는 부분은 잘라낸다', () => {
+    const many = Array.from({ length: MAX_SAVED_COLORS + 5 }, (_, i) => `#${String(i).padStart(6, '0')}`);
+    const storage = fakeStorage({ [KEY]: JSON.stringify(many) });
+    expect(loadSavedColors(storage)).toEqual(many.slice(0, MAX_SAVED_COLORS));
+  });
+
+  test('저장할 때도 올바른 색만 남기고 중복과 상한을 처리한다', () => {
+    const storage = fakeStorage();
+    saveSavedColors(['#AA0000', 'nope', '#aa0000', '#00bb00'], storage);
+    expect(JSON.parse(storage.data[KEY]!)).toEqual(['#aa0000', '#00bb00']);
+  });
+
+  test('저장소를 쓸 수 없거나 오류를 던져도 오류 없이 빈 목록이고 저장은 조용히 건너뛴다', () => {
+    expect(loadSavedColors(null)).toEqual([]);
+    expect(() => saveSavedColors(['#ff0000'], null)).not.toThrow();
+    expect(loadSavedColors(brokenStorage)).toEqual([]);
+    expect(() => saveSavedColors(['#ff0000'], brokenStorage)).not.toThrow();
   });
 });
 

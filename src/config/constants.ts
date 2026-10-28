@@ -7,6 +7,7 @@ export const MAX_FRAMES = 32;
 export const MAX_UNDO = 50;
 export const MAX_UNDO_BYTES = 128 * 1024 * 1024; // 되돌리기 기록 전체 메모리 상한
 export const CLEANUP_MAX_LUMA_DIFF = 48; // 외톨이 정리: 이 밝기 차이(0~255) 이하일 때만 주변 색으로 바꾼다
+export const MAX_SAVED_COLORS = 12; // 색 선택 창에 저장해 두는 색의 최대 개수
 export const MIN_COLORS = 4;
 export const MAX_COLORS = 32;
 export const ART_SIZE_PRESETS = [8, 16, 32, 64] as const;

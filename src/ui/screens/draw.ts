@@ -1,6 +1,8 @@
-import { FREEHAND_SIZE, MAX_UNDO, MAX_UNDO_BYTES } from '../../config/constants';
+import { FREEHAND_SIZE, MAX_SAVED_COLORS, MAX_UNDO, MAX_UNDO_BYTES } from '../../config/constants';
 import { createHistory } from '../../editor/history';
-import { loadPenColor, savePenColor } from '../../io/preferences';
+import { addRecentColor } from '../../editor/recentColors';
+import { loadPenColor, loadSavedColors, savePenColor, saveSavedColors } from '../../io/preferences';
+import { openColorPicker } from '../components/colorPicker';
 import { copy } from '../copy';
 import { h } from '../dom';
 import { readBuffer } from '../render';
@@ -187,11 +189,37 @@ export const drawScreen: Screen = (host, { store, actions }) => {
   eraserButton.addEventListener('click', () => selectTool('eraser'));
   selectTool('pen');
 
-  const colorInput = h('input', { type: 'color', value: color, 'aria-label': copy.drawColor });
-  colorInput.addEventListener('input', () => {
-    color = colorInput.value;
-    savePenColor(color);
-    selectTool('pen');
+  // 색 칸을 누르면 색 선택 창이 열린다. 창에서 "확인"을 눌렀을 때만 펜 색이 바뀌고, 그 색이 저장된 색 목록에 남는다.
+  let savedColors = loadSavedColors();
+  let closePicker: (() => void) | null = null;
+  const colorSwatch = h('span', { class: 'swatch', 'aria-hidden': 'true' });
+  const colorButton = h(
+    'button',
+    { class: 'btn color-btn', type: 'button', 'aria-label': copy.drawColorOpen, 'aria-haspopup': 'dialog' },
+    colorSwatch,
+  );
+  const showColor = () => {
+    colorSwatch.style.backgroundColor = color;
+    colorButton.title = `${copy.drawColor} ${color}`;
+  };
+  showColor();
+  colorButton.addEventListener('click', () => {
+    if (closePicker) return;
+    closePicker = openColorPicker({
+      initial: color,
+      saved: savedColors,
+      onConfirm: (hex) => {
+        color = hex;
+        savePenColor(hex);
+        savedColors = addRecentColor(savedColors, hex, MAX_SAVED_COLORS);
+        saveSavedColors(savedColors);
+        showColor();
+        selectTool('pen');
+      },
+      onClose: () => {
+        closePicker = null;
+      },
+    });
   });
 
   const sizeInput = h('input', { type: 'range', min: 1, max: maxPen, value: size, 'aria-label': copy.drawSize });
@@ -211,7 +239,7 @@ export const drawScreen: Screen = (host, { store, actions }) => {
   syncHistoryButtons();
 
   const onKey = (e: KeyboardEvent) => {
-    if (isTyping(e.target)) return;
+    if (closePicker || isTyping(e.target)) return; // 색 선택 창이 열려 있으면 그림 단축키는 쓰지 않는다
     if (e.ctrlKey || e.metaKey) {
       if (e.key.toLowerCase() !== 'z') return;
       e.preventDefault();
@@ -243,7 +271,7 @@ export const drawScreen: Screen = (host, { store, actions }) => {
         h('div', { class: 'draw-tools' },
           penButton,
           eraserButton,
-          h('label', { class: 'field' }, copy.drawColor, colorInput),
+          h('span', { class: 'field' }, copy.drawColor, colorButton),
           h('label', { class: 'field' }, copy.drawSize, sizeInput),
           undoButton,
           redoButton,
@@ -270,6 +298,7 @@ export const drawScreen: Screen = (host, { store, actions }) => {
   observer.observe(stage);
 
   return () => {
+    closePicker?.();
     observer.disconnect();
     document.removeEventListener('keydown', onKey);
     host.replaceChildren();

@@ -147,7 +147,7 @@ export const convertScreen: Screen = (host, { store, actions }) => {
     'section',
     { class: 'panes' },
     h('figure', { class: 'pane' }, h('figcaption', { class: 'pane-caption' }, copy.original, drawOnSourceButton), sourceWrap),
-    h('figure', { class: 'pane' }, h('figcaption', {}, copy.result), resultWrap),
+    h('figure', { class: 'pane' }, h('figcaption', { class: 'pane-caption' }, copy.result), resultWrap),
   );
 
   host.append(h('div', { class: 'screen convert' }, stepBar(actions), options, notice, panes, status));
