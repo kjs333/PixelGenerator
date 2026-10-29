@@ -1,6 +1,6 @@
 import type { ConvertOptions, PixelBuffer, RGBA } from '../core/types';
 
-export type Step = 'start' | 'draw' | 'convert' | 'animate' | 'sheet';
+export type Step = 'start' | 'draw' | 'convert' | 'edit' | 'animate' | 'sheet';
 
 export type NoticeCode =
   | 'empty'
@@ -23,6 +23,8 @@ export interface AppState {
   convertOptions: ConvertOptions;
   converted: { image: PixelBuffer; palette: RGBA[] } | null;
   converting: boolean;
+  /** 변환 결과를 직접 고쳤는지. 다시 변환하면 고친 내용이 사라지므로 확인 창을 띄우는 데 쓴다. */
+  edited: boolean;
   notice: Notice | null;
 }
 
@@ -59,5 +61,6 @@ export const initialState: AppState = {
   convertOptions: { width: 32, height: 32, colors: 8, dither: 'none', cleanup: false },
   converted: null,
   converting: false,
+  edited: false,
   notice: null,
 };

@@ -234,6 +234,8 @@
 
 .export-controls {
   display: inline-flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
   gap: var(--space-2);
   align-items: center;
 }
@@ -354,7 +356,7 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-3);
-  width: 288px;
+  width: 320px;
   padding: var(--space-4);
   border: 1px solid var(--line);
   border-radius: var(--radius);
@@ -370,14 +372,14 @@
 
 .sv-wrap {
   position: relative;
-  width: 240px;
+  width: 288px;
   height: 160px;
   line-height: 0;
 }
 
 .sv-canvas {
   display: block;
-  width: 240px;
+  width: 288px;
   height: 160px;
   cursor: crosshair;
   touch-action: none;
@@ -397,7 +399,7 @@
 }
 
 .hue-slider {
-  width: 240px;
+  width: 288px;
   height: 12px;
   margin: 0;
   border-radius: var(--radius);
@@ -504,6 +506,118 @@
   background: var(--paper);
   cursor: none; /* 기본 커서 대신 펜 굵기만 한 원(.pen-cursor)을 보여 준다 */
   touch-action: none;
+}
+
+/* 결과 수정(칸 단위): 확대해도 칸이 흐려지지 않게, 투명 칸은 체크무늬로 보이게 */
+.draw-canvas.pixelated {
+  image-rendering: pixelated;
+}
+
+.draw-canvas.checker {
+  background-color: var(--paper);
+  background-image:
+    linear-gradient(45deg, var(--paper-check) 25%, transparent 25%, transparent 75%, var(--paper-check) 75%),
+    linear-gradient(45deg, var(--paper-check) 25%, transparent 25%, transparent 75%, var(--paper-check) 75%);
+  background-position: 0 0, 8px 8px;
+  background-size: 16px 16px;
+}
+
+/* 칸 단위 붓은 N×N 정사각형이라 커서도 정사각형(칸 경계에 맞춤) */
+.pen-cursor.is-square {
+  border-radius: 0;
+}
+
+/* 아이콘만 있는 버튼 */
+.icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  padding: 0;
+}
+
+.icon {
+  display: block;
+}
+
+/* 스포이드로 찍는 중: 색 선택 창은 숨기고, 그림 위 커서를 십자로 바꾸고, 안내 문구를 띄운다 */
+.modal-backdrop.is-picking {
+  display: none;
+}
+
+.draw-canvas.is-eyedropper {
+  cursor: crosshair;
+}
+
+.eyedrop-hint {
+  position: fixed;
+  top: var(--space-6);
+  left: 50%;
+  z-index: 110;
+  padding: var(--space-2) var(--space-4);
+  border: 1px solid var(--blue);
+  border-radius: var(--radius);
+  background: var(--panel);
+  color: var(--ink);
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+/* 결과 수정 화면: 왼쪽에 사용된 색 목록 */
+.edit-body {
+  display: flex;
+  min-height: 0;
+}
+
+.edit-body > .draw-stage {
+  flex: 1;
+  min-width: 0;
+}
+
+.used-colors {
+  display: flex;
+  flex-direction: column;
+  flex: none;
+  gap: var(--space-2);
+  width: 144px;
+  padding: var(--space-4);
+  overflow-y: auto;
+  border-right: 1px solid var(--line);
+  background: var(--panel);
+}
+
+.aside-title {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.swatch-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.used-colors .swatch {
+  width: 24px;
+  height: 24px;
+}
+
+.confirm-dialog {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  width: 320px;
+  max-width: 90vw;
+  padding: var(--space-4);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--panel);
+  color: var(--ink);
+}
+
+.confirm-message {
+  margin: 0;
 }
 
 /* 펜·지우개 굵기만 한 원. 밝은 배경과 어두운 배경 모두에서 보이게 검정 테두리 + 흰 바깥선 */

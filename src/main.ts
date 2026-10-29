@@ -5,6 +5,7 @@ import { createActions } from './state/actions';
 import { createStore, initialState, type Step } from './state/store';
 import { convertScreen } from './ui/screens/convert';
 import { drawScreen } from './ui/screens/draw';
+import { editScreen } from './ui/screens/edit';
 import { startScreen } from './ui/screens/start';
 import type { Screen } from './ui/screens/types';
 
@@ -12,6 +13,7 @@ const SCREENS: Partial<Record<Step, Screen>> = {
   start: startScreen,
   draw: drawScreen,
   convert: convertScreen,
+  edit: editScreen,
 };
 
 const host = document.getElementById('app');

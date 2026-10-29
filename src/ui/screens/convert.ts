@@ -8,6 +8,7 @@ import {
 import type { DitherMode } from '../../core/types';
 import type { AppState } from '../../state/store';
 import { renderNotice } from '../components/notice';
+import { openConfirmDialog } from '../components/confirmDialog';
 import { stepBar } from '../components/stepBar';
 import { copy } from '../copy';
 import { h } from '../dom';
@@ -116,8 +117,24 @@ export const convertScreen: Screen = (host, { store, actions }) => {
   cleanupInput.addEventListener('change', () => actions.setOptions({ cleanup: cleanupInput.checked }));
   const cleanupLabel = h('label', { class: 'option-group check' }, cleanupInput, copy.cleanup);
 
+  // 결과를 직접 고친 뒤 다시 변환하면 고친 내용이 사라지므로, 먼저 한 번 묻는다.
+  let closeConfirm: (() => void) | null = null;
   const convertButton = h('button', { class: 'btn btn-primary', type: 'button' }, copy.convert);
-  convertButton.addEventListener('click', () => void actions.convert());
+  convertButton.addEventListener('click', () => {
+    if (!store.getState().edited) {
+      void actions.convert();
+      return;
+    }
+    if (closeConfirm) return;
+    closeConfirm = openConfirmDialog({
+      message: copy.reconvertMessage,
+      confirmLabel: copy.reconvertConfirm,
+      onConfirm: () => void actions.convert(),
+      onClose: () => {
+        closeConfirm = null;
+      },
+    });
+  });
 
   const options = h(
     'section',
@@ -161,7 +178,9 @@ export const convertScreen: Screen = (host, { store, actions }) => {
   );
   const saveButton = h('button', { class: 'btn', type: 'button' }, copy.savePng);
   saveButton.addEventListener('click', () => void actions.exportResult(Number(scaleSelect.value)));
-  const exportControls = h('span', { class: 'export-controls' }, scaleSelect, saveButton);
+  const editButton = h('button', { class: 'btn', type: 'button' }, copy.editResult);
+  editButton.addEventListener('click', () => actions.editResult());
+  const exportControls = h('span', { class: 'export-controls' }, editButton, scaleSelect, saveButton);
 
   const panes = h(
     'section',
@@ -236,6 +255,7 @@ export const convertScreen: Screen = (host, { store, actions }) => {
     });
     scaleSelect.toggleAttribute('disabled', !hasResult);
     saveButton.toggleAttribute('disabled', !hasResult);
+    editButton.toggleAttribute('disabled', !hasResult);
 
     resultCanvas.classList.toggle('is-hidden', !hasResult);
     resultEmpty.classList.toggle('is-hidden', hasResult);
@@ -253,6 +273,7 @@ export const convertScreen: Screen = (host, { store, actions }) => {
   observer.observe(resultWrap);
 
   return () => {
+    closeConfirm?.();
     unsubscribe();
     observer.disconnect();
     document.removeEventListener('click', onDocumentClick);

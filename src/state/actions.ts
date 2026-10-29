@@ -1,5 +1,6 @@
 import { savePixelPng } from '../io/exportPng';
 import { loadImage, LoadError } from '../io/loadImage';
+import { extractPalette } from '../core/palette';
 import { pixelate } from '../core/pixelate';
 import type { ConvertOptions, PixelBuffer } from '../core/types';
 import type { AppState, Store } from './store';
@@ -14,12 +15,12 @@ export type Actions = ReturnType<typeof createActions>;
 export function createActions(store: Store<AppState>) {
   return {
     goStart(): void {
-      store.setState({ step: 'start', source: null, converted: null, notice: null });
+      store.setState({ step: 'start', source: null, converted: null, edited: false, notice: null });
     },
 
     /** 빈 캔버스에서 새로 그리기 */
     startDrawing(): void {
-      store.setState({ step: 'draw', source: null, converted: null, notice: null });
+      store.setState({ step: 'draw', source: null, converted: null, edited: false, notice: null });
     },
 
     /** 올린 사진(원본) 위에 펜으로 덧그리기. 그림판 화면이 원본을 바탕으로 깐다. */
@@ -40,6 +41,7 @@ export function createActions(store: Store<AppState>) {
           step: 'convert',
           source: buffer,
           converted: null,
+          edited: false,
           notice: scaled ? { kind: 'info', code: 'resized' } : null,
         });
       } catch (error) {
@@ -49,7 +51,28 @@ export function createActions(store: Store<AppState>) {
     },
 
     useDrawing(buffer: PixelBuffer): void {
-      store.setState({ step: 'convert', source: buffer, converted: null, notice: null });
+      store.setState({ step: 'convert', source: buffer, converted: null, edited: false, notice: null });
+    },
+
+    /** 변환 결과를 칸 단위로 고치는 화면으로 간다. */
+    editResult(): void {
+      if (!store.getState().converted) return;
+      store.setState({ step: 'edit', notice: null });
+    },
+
+    /** 고친 내용을 버리고 변환 화면으로 돌아간다(결과는 그대로). */
+    cancelEdit(): void {
+      store.setState({ step: 'convert' });
+    },
+
+    /** 고친 이미지를 변환 결과로 반영한다. 색 개수 표시를 위해 쓰인 색을 다시 센다. */
+    applyEdit(image: PixelBuffer): void {
+      store.setState({
+        step: 'convert',
+        converted: { image, palette: extractPalette(image) },
+        edited: true,
+        notice: null,
+      });
     },
 
     setOptions(patch: Partial<ConvertOptions>): void {
@@ -74,7 +97,7 @@ export function createActions(store: Store<AppState>) {
       store.setState({ converting: true, notice: null });
       await nextFrame();
       try {
-        store.setState({ converted: pixelate(source, convertOptions), converting: false });
+        store.setState({ converted: pixelate(source, convertOptions), converting: false, edited: false });
       } catch {
         store.setState({ converting: false, notice: { kind: 'error', code: 'convert-failed' } });
       }

@@ -1,8 +1,9 @@
 import { hexToRgb, hsvToRgb, rgbToHex, rgbToHsv, type Hsv } from '../../core/hsv';
 import { copy } from '../copy';
 import { h } from '../dom';
+import { eyedropperIcon } from './icons';
 
-const SV_WIDTH = 240;
+const SV_WIDTH = 288;
 const SV_HEIGHT = 160;
 const KEY_STEP = 0.02; // 방향키 한 번에 채도·명도가 움직이는 양(Shift는 5배)
 
@@ -15,6 +16,11 @@ export interface ColorPickerOptions {
   onConfirm: (hex: string) => void;
   /** 확인·취소 어느 쪽으로든 창이 닫힌 뒤에 불린다 */
   onClose?: () => void;
+  /**
+   * 있으면 "스포이드" 버튼을 보여 준다. 누르면 창을 숨기고 이 함수를 불러서 그림에서 색을 찍게 한다.
+   * 색을 찍으면 onPick, 취소하면 onCancel이 불린다. 돌려주는 함수는 찍기를 중간에 취소한다.
+   */
+  startEyedrop?: (onPick: (hex: string) => void, onCancel: () => void) => () => void;
 }
 
 const clampUnit = (value: number) => Math.min(1, Math.max(0, value));
@@ -28,6 +34,7 @@ export function openColorPicker(opt: ColorPickerOptions): () => void {
   const previouslyFocused = document.activeElement instanceof HTMLElement ? document.activeElement : null;
   let hsv: Hsv = rgbToHsv(...(hexToRgb(opt.initial) ?? [0, 0, 0]));
   let closed = false;
+  let cancelEyedrop: (() => void) | null = null; // 스포이드로 찍는 중이면 그 취소 함수
 
   const currentHex = () => rgbToHex(...hsvToRgb(hsv.h, hsv.s, hsv.v));
 
@@ -138,6 +145,35 @@ export function openColorPicker(opt: ColorPickerOptions): () => void {
     if (hexInput.getAttribute('aria-invalid') === 'true') sync('init'); // 잘못 입력한 채로 떠나면 원래 색 코드로 되돌린다
   });
 
+  // ── 스포이드: 창을 숨기고 그림에서 한 칸을 찍어 그 색을 "새 색"으로 가져온다(확인은 따로 눌러야 한다) ──
+  const startEyedrop = opt.startEyedrop;
+  const eyedropButton = startEyedrop
+    ? h(
+        'button',
+        { class: 'btn icon-btn', type: 'button', title: copy.eyedropperTip, 'aria-label': copy.eyedropper },
+        eyedropperIcon(), // 글자 대신 아이콘. 이름은 aria-label과 툴팁으로 남긴다
+      )
+    : null;
+  const finishEyedrop = () => {
+    cancelEyedrop = null;
+    backdrop.classList.remove('is-picking');
+    eyedropButton?.focus();
+  };
+  eyedropButton?.addEventListener('click', () => {
+    if (!startEyedrop || cancelEyedrop) return;
+    backdrop.classList.add('is-picking');
+    cancelEyedrop = startEyedrop(
+      (hex) => {
+        const rgb = hexToRgb(hex);
+        finishEyedrop();
+        if (!rgb) return;
+        hsv = rgbToHsv(...rgb);
+        sync('saved');
+      },
+      finishEyedrop,
+    );
+  });
+
   // ── 이전 / 새 색, 저장된 색 ──
   // 화면에는 글자 없이 색 칸만 보이고, 이름은 툴팁과 스크린 리더용 접근성 이름으로만 남긴다
   const oldSwatch = h('span', {
@@ -199,6 +235,7 @@ export function openColorPicker(opt: ColorPickerOptions): () => void {
       'div',
       { class: 'color-values' },
       hexInput,
+      eyedropButton,
       h('div', { class: 'compare' }, oldSwatch, newSwatch),
     ),
     hexError,
@@ -214,6 +251,7 @@ export function openColorPicker(opt: ColorPickerOptions): () => void {
   const close = () => {
     if (closed) return;
     closed = true;
+    cancelEyedrop?.(); // 찍는 중에 창이 닫히면 찍기 상태도 정리한다
     document.removeEventListener('keydown', onKey, true);
     backdrop.remove();
     previouslyFocused?.focus();
@@ -229,7 +267,8 @@ export function openColorPicker(opt: ColorPickerOptions): () => void {
   const onKey = (e: KeyboardEvent) => {
     if (e.key === 'Escape') {
       e.preventDefault();
-      close();
+      if (cancelEyedrop) cancelEyedrop(); // 찍는 중 Esc는 창을 닫지 않고 찍기만 취소한다
+      else close();
     } else if (e.key === 'Enter' && e.target === hexInput) {
       e.preventDefault();
       confirm();
