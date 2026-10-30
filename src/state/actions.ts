@@ -1,4 +1,5 @@
 import { savePixelPng } from '../io/exportPng';
+import { fetchPixellabBalance } from '../io/pixellab';
 import { loadImage, LoadError } from '../io/loadImage';
 import { extractPalette } from '../core/palette';
 import { pixelate } from '../core/pixelate';
@@ -88,6 +89,26 @@ export function createActions(store: Store<AppState>) {
         store.setState({ notice: { kind: 'info', code: 'saved' } });
       } catch {
         store.setState({ notice: { kind: 'error', code: 'save-failed' } });
+      }
+    },
+
+    /**
+     * 애니메이션 생성. 지금은 Pixellab 연결 확인 단계라 잔액만 조회해서 보여 준다.
+     * 결과가 오거나 실패할 때까지 aiBusy로 버튼을 막는다(요청마다 요금이 나가는 API라 중복 요청 방지).
+     */
+    async generateAnimation(): Promise<void> {
+      const { converted, aiBusy } = store.getState();
+      if (!converted || aiBusy) return;
+      store.setState({ aiBusy: true, notice: null });
+      try {
+        const { usd, generations, total } = await fetchPixellabBalance();
+        const parts = [
+          usd !== null ? `크레딧 $${usd.toFixed(2)}` : null,
+          generations !== null ? `남은 생성 ${generations}${total !== null ? `/${total}` : ''}` : null,
+        ].filter(Boolean);
+        store.setState({ aiBusy: false, notice: { kind: 'info', code: 'ai-connected', detail: parts.join(' · ') } });
+      } catch {
+        store.setState({ aiBusy: false, notice: { kind: 'error', code: 'ai-failed' } });
       }
     },
 

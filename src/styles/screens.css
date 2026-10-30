@@ -489,15 +489,16 @@
 
 .draw-stage {
   display: flex;
-  align-items: center;
-  justify-content: center;
   min-height: 0;
   padding: var(--space-4);
   overflow: auto;
 }
 
+/* 가운데 정렬은 margin: auto로 한다. Ctrl+휠로 크게 확대해 넘쳐도 왼쪽·위쪽까지 스크롤할 수 있다. */
 .draw-canvas-wrap {
   position: relative;
+  flex: none;
+  margin: auto;
   line-height: 0;
 }
 
@@ -584,6 +585,27 @@
   overflow-y: auto;
   border-right: 1px solid var(--line);
   background: var(--panel);
+}
+
+/* 결과 수정: 참고용 원본. 픽셀 결과보다 작게, 비율은 유지한다. */
+.edit-original {
+  display: flex;
+  flex-direction: column;
+  flex: none;
+  gap: var(--space-2);
+  width: clamp(160px, 18vw, 240px);
+  padding: var(--space-4);
+  overflow-y: auto;
+  border-right: 1px solid var(--line);
+  background: var(--panel);
+}
+
+.original-canvas {
+  display: block;
+  width: 100%;
+  height: auto;
+  border: 1px solid var(--line);
+  background: var(--paper);
 }
 
 .aside-title {

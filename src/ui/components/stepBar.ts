@@ -2,8 +2,11 @@ import type { Actions } from '../../state/actions';
 import { copy } from '../copy';
 import { h } from '../dom';
 
-/** 상단 단계 바. Day 1에는 ① 변환만 있고 나머지는 비활성이다. */
-export function stepBar(actions: Actions): HTMLElement {
+/**
+ * 상단 단계 바. Day 1에는 ① 변환만 있고 나머지는 비활성이다.
+ * 오른쪽 끝 버튼(애니메이션 생성)은 상태를 아는 화면이 만들어 넘긴다.
+ */
+export function stepBar(actions: Actions, trailing: HTMLElement): HTMLElement {
   const logo = h('button', { class: 'logo', type: 'button', 'aria-label': copy.backToStart }, copy.appName);
   logo.addEventListener('click', () => actions.goStart());
 
@@ -25,9 +28,6 @@ export function stepBar(actions: Actions): HTMLElement {
     step(copy.stepSheet, 'disabled'),
   );
 
-  const exportButton = h('button', { class: 'btn', type: 'button', disabled: true }, copy.exportPng);
-  exportButton.title = copy.exportDisabledTip;
-
   const backButton = h('button', { class: 'btn', type: 'button' }, `← ${copy.backToStart}`);
   backButton.addEventListener('click', () => actions.goStart());
 
@@ -36,6 +36,6 @@ export function stepBar(actions: Actions): HTMLElement {
     { class: 'stepbar' },
     h('div', { class: 'stepbar-left' }, logo, backButton),
     h('nav', { 'aria-label': '작업 단계' }, steps),
-    exportButton,
+    trailing,
   );
 }

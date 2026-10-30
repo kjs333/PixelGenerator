@@ -376,6 +376,7 @@ brainstorm 보안 체크리스트를 코드 위치에 대응시켰다.
 | 메모리 폭주 | `MAX_UNDO 50`, `MAX_FRAMES 32`, `MAX_LAYERS 10`, `MAX_ART_SIZE 256` | `config/constants.ts` |
 | 스크립트 주입 | `innerHTML` 금지, 런타임 의존성 0개 | ESLint 규칙 |
 | 다운로드 파일명 | 사용자 입력을 쓰지 않고 `sprite-{timestamp}.png` 고정 | `io/exportPng.ts` |
+| **API 키 노출 (v2 Pixellab)** | **절대 노출 금지.** 키는 Netlify 환경 변수에만 두고 Netlify Functions 안에서만 읽는다. 브라우저 코드, Git 저장소, `.env` 커밋, 응답 본문, 로그 어디에도 넣지 않는다 (12.1 참고) | `netlify/functions/` |
 
 ```ts
 // config/constants.ts
@@ -400,12 +401,14 @@ export const ART_SIZE_PRESETS = [8, 16, 32, 64] as const;
 [[headers]]
   for = "/*"
   [headers.values]
-    Content-Security-Policy = "default-src 'self'; img-src 'self' data: blob:; style-src 'self'; font-src 'self'; script-src 'self'; connect-src 'none'; object-src 'none'; base-uri 'self'; frame-ancestors 'none'"
+    Content-Security-Policy = "default-src 'self'; img-src 'self' data: blob:; style-src 'self'; font-src 'self'; script-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'none'"
     X-Content-Type-Options = "nosniff"
     Referrer-Policy = "no-referrer"
 ```
 
-- `connect-src 'none'`: 앱이 어디로도 데이터를 보내지 못하게 막는다. "사진이 기기 밖으로 나가지 않아요" 문구를 **설정으로 보증**하는 장치다. v2에서 Pixellab을 붙일 때 `'self'`(Netlify Functions)로만 연다.
+- (2026-10-29 변경) Pixellab 연결 확인 기능을 붙이면서 `connect-src 'self'`로 열었다. 브라우저는 우리 사이트의 `/.netlify/functions/*`로만 요청할 수 있다. 로컬 `npm run dev`에서는 `vite.config.ts`의 `netlifyFunctionsDev` 플러그인이 같은 함수를 대신 실행한다.
+- (변경 전) `connect-src 'none'`: 앱이 어디로도 데이터를 보내지 못하게 막는다. "사진이 기기 밖으로 나가지 않아요" 문구를 **설정으로 보증**하는 장치다. v2에서 Pixellab을 붙일 때 `'self'`(Netlify Functions)로만 연다 (12.1 참고).
+- CSP는 Netlify 대시보드가 아니라 저장소의 `netlify.toml`에서 고친다. 반대로 **API 키는 `netlify.toml`에 쓰지 않고 Netlify 대시보드의 환경 변수에만** 넣는다.
 - 배포 후 브라우저 개발자 도구 콘솔에 CSP 오류가 없는지 반드시 확인한다 (Day 4 체크리스트).
 - Git 저장소 연결 → push마다 자동 배포, PR마다 미리보기 URL.
 
@@ -462,6 +465,48 @@ export const ART_SIZE_PRESETS = [8, 16, 32, 64] as const;
 | 프로젝트 저장/불러오기 | `Project`가 평범한 데이터 | JSON 직렬화 + 스키마 검증 + 상한 검사 |
 | UI 복잡도 증가 | 상태 변경이 `actions.ts`에 모여 있음 | `ui/`만 Preact로 교체 |
 | GIF 내보내기 | `renderFrame`으로 프레임 이미지 목록을 이미 만듦 | 인코더 추가 (런타임 의존성 1개 생김 → 검토) |
+
+### 12.1 Pixellab AI 애니메이션 [결정]
+
+픽셀 변환 결과(또는 직접 고친 결과)를 Pixellab에 보내 애니메이션 프레임을 받는다.
+
+**API 키는 절대 노출하지 않는다 (가장 먼저 지킬 규칙)**
+
+- 키는 **Netlify 대시보드의 환경 변수**(`PIXELLAB_API_KEY`)에만 저장한다. 코드와 Git 저장소에는 넣지 않는다.
+- 키를 읽는 곳은 `netlify/functions/` 안의 함수뿐이다. `src/`(브라우저 코드)에서는 Pixellab 주소를 직접 부르지 않는다.
+- `VITE_`로 시작하는 환경 변수에 키를 넣지 않는다. Vite가 브라우저 번들에 그대로 넣어 버린다.
+- 함수는 Pixellab 응답 중 프레임 이미지와 상태만 골라 돌려준다. 키, 요청 헤더, Pixellab 원본 에러 본문을 브라우저로 넘기거나 로그에 남기지 않는다.
+- 로컬 개발은 `.env`(`.gitignore`에 포함)와 `netlify dev`로 한다. 배포 전 `dist/`에서 키 문자열이 검색되지 않는지 확인한다.
+
+**구조: Netlify Functions 프록시**
+
+```
+브라우저 ──POST /.netlify/functions/pixellab-start──▶ 함수 ──(키 붙여서)──▶ Pixellab  → background_job_id
+브라우저 ──GET  /.netlify/functions/pixellab-status?id=…──▶ 함수 ──▶ Pixellab  → processing / completed(프레임) / failed
+```
+
+- 시작과 상태 조회를 나눈다. Pixellab 애니메이션은 30초~5분 걸리는데, 함수 한 번이 그만큼 기다리면 Netlify 함수 실행 시간 제한에 걸린다.
+- 브라우저는 상태 조회를 3초마다 부른다. 5분이 지나도 끝나지 않으면 실패로 처리한다.
+- 함수에서 입력을 다시 검사한다: 이미지 크기(최대 256×256), 프레임 수(4·8·16), 동작 설명 길이. 브라우저 검사만 믿지 않는다.
+- 사용할 API: `animate-with-text-v3` (첫 프레임 + 동작 설명, 4·8·16프레임).
+
+**결과 형식**
+
+- Pixellab은 프레임마다 따로 된 PNG(base64) 배열을 준다. 스프라이트 시트는 우리가 만든다.
+- **기본: 스프라이트 시트 PNG 한 장.** 모든 칸이 같은 크기이고 칸 사이 여백은 0이다. 기존 `buildSheet`를 그대로 쓴다. Unity에서는 Sprite Editor의 `Grid By Cell Size`로 한 번에 잘린다.
+- **선택: 낱장 PNG 묶음(zip).** 파일 이름은 `frame-01.png`, `frame-02.png` … 순서대로 짓는다. 런타임 의존성 0개 원칙을 지키기 위해, 압축하지 않는(STORE) 방식의 zip 작성 함수를 `io/zip.ts`에 직접 만든다. PNG는 이미 압축되어 있어 크기 손해가 거의 없다.
+
+**기다리는 화면과 버튼 상태**
+
+- "애니메이션 만들기" 버튼을 누르면 **결과가 나오거나 실패할 때까지 버튼을 비활성화**한다. 두 번 눌러서 요금이 두 번 나가는 일을 막는다.
+- 기다리는 동안 진행 표시(경과 시간과 "보통 1~3분 걸려요" 안내)를 보여 준다.
+- 실패하거나 시간이 초과되면 버튼을 다시 활성화하고, 무엇이 안 됐는지 문구로 알려 준다.
+- 기다리는 중에 화면을 떠나면 상태 조회를 멈춘다.
+
+**보안 설정(CSP) 변경**
+
+- `netlify.toml`의 `connect-src 'none'`을 `connect-src 'self'`로 바꾼다. 브라우저는 우리 사이트의 함수 주소로만 요청하므로 Pixellab 주소를 허용 목록에 넣지 않는다.
+- 이때부터 "사진은 이 컴퓨터 밖으로 전송되지 않아요" 문구가 AI 기능에서는 맞지 않으므로, 처음 쓸 때 외부 전송 동의 창을 띄운다.
 
 ## 13. 열린 질문
 

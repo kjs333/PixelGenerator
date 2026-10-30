@@ -3,11 +3,12 @@ import { extractPalette } from '../../core/palette';
 import { createPaintEditor } from '../components/paintEditor';
 import { copy } from '../copy';
 import { h } from '../dom';
+import { drawBuffer } from '../render';
 import type { Screen } from './types';
 
 /**
  * 결과 수정 화면: 변환한 픽셀 결과를 칸 단위로 고친다(붓은 1×1, 2×2 …).
- * 도구는 직접 그리기와 같은 paintEditor를 쓰고, 왼쪽에 지금 이미지에 쓰인 색을 나열한다.
+ * 도구는 직접 그리기와 같은 paintEditor를 쓰고, 왼쪽에 지금 이미지에 쓰인 색과 원본을 보여 준다.
  * "적용"을 눌러야만 결과에 반영된다.
  */
 export const editScreen: Screen = (host, { store, actions }) => {
@@ -57,6 +58,20 @@ export const editScreen: Screen = (host, { store, actions }) => {
   });
   renderColors();
 
+  // ── 원본: 고칠 때 참고하도록 사용된 색 오른쪽에 작게 보여 준다 ──
+  const source = store.getState().source;
+  let originalPane: HTMLElement | null = null;
+  if (source) {
+    const originalCanvas = h('canvas', { class: 'original-canvas' });
+    drawBuffer(originalCanvas, source);
+    originalPane = h(
+      'aside',
+      { class: 'edit-original', 'aria-label': copy.original },
+      h('h2', { class: 'aside-title' }, copy.original),
+      originalCanvas,
+    );
+  }
+
   const cancel = h('button', { class: 'btn', type: 'button' }, copy.editCancel);
   cancel.addEventListener('click', () => actions.cancelEdit());
   const apply = h('button', { class: 'btn btn-primary', type: 'button' }, copy.editApply);
@@ -67,7 +82,7 @@ export const editScreen: Screen = (host, { store, actions }) => {
       'main',
       { class: 'screen draw' },
       h('header', { class: 'draw-bar' }, cancel, editor.toolbar, apply),
-      h('div', { class: 'edit-body' }, usedColors, editor.stage),
+      h('div', { class: 'edit-body' }, usedColors, ...(originalPane ? [originalPane] : []), editor.stage),
     ),
   );
 

@@ -10,11 +10,15 @@ export type NoticeCode =
   | 'resized'
   | 'convert-failed'
   | 'saved'
-  | 'save-failed';
+  | 'save-failed'
+  | 'ai-connected'
+  | 'ai-failed';
 
 export interface Notice {
   kind: 'error' | 'info';
   code: NoticeCode;
+  /** 문구 뒤에 덧붙이는 값(예: 잔액) */
+  detail?: string;
 }
 
 export interface AppState {
@@ -25,6 +29,8 @@ export interface AppState {
   converting: boolean;
   /** 변환 결과를 직접 고쳤는지. 다시 변환하면 고친 내용이 사라지므로 확인 창을 띄우는 데 쓴다. */
   edited: boolean;
+  /** AI(Pixellab) 요청을 기다리는 중인지. 기다리는 동안 버튼을 막는다. */
+  aiBusy: boolean;
   notice: Notice | null;
 }
 
@@ -62,5 +68,6 @@ export const initialState: AppState = {
   converted: null,
   converting: false,
   edited: false,
+  aiBusy: false,
   notice: null,
 };

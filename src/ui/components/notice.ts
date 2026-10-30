@@ -9,6 +9,6 @@ export function renderNotice(host: HTMLElement, notice: Notice | null): void {
   const icon = notice.kind === 'error' ? '⚠' : 'ℹ';
   host.append(
     h('span', { class: 'notice-icon', 'aria-hidden': 'true' }, icon),
-    h('span', {}, noticeText[notice.code]),
+    h('span', {}, notice.detail ? `${noticeText[notice.code]} ${notice.detail}` : noticeText[notice.code]),
   );
 }

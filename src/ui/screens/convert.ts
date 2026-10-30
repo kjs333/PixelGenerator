@@ -189,7 +189,10 @@ export const convertScreen: Screen = (host, { store, actions }) => {
     h('figure', { class: 'pane' }, h('figcaption', { class: 'pane-caption' }, copy.result, exportControls), resultWrap),
   );
 
-  host.append(h('div', { class: 'screen convert' }, stepBar(actions), options, notice, panes, status));
+  const animateButton = h('button', { class: 'btn btn-primary', type: 'button' }, copy.generateAnimation);
+  animateButton.addEventListener('click', () => void actions.generateAnimation());
+
+  host.append(h('div', { class: 'screen convert' }, stepBar(actions, animateButton), options, notice, panes, status));
 
   // ── 화면 갱신: 컨트롤은 다시 만들지 않고 값만 바꾼다(슬라이더 조작이 끊기지 않게) ──
   let zoom = 1;
@@ -256,6 +259,12 @@ export const convertScreen: Screen = (host, { store, actions }) => {
     scaleSelect.toggleAttribute('disabled', !hasResult);
     saveButton.toggleAttribute('disabled', !hasResult);
     editButton.toggleAttribute('disabled', !hasResult);
+
+    // 결과가 있을 때만 누를 수 있고, 응답을 기다리는 동안에는 막는다
+    animateButton.toggleAttribute('disabled', !hasResult || state.aiBusy);
+    animateButton.setAttribute('aria-busy', String(state.aiBusy));
+    animateButton.textContent = state.aiBusy ? copy.generatingAnimation : copy.generateAnimation;
+    animateButton.title = hasResult ? copy.generateAnimationTip : copy.generateAnimationDisabledTip;
 
     resultCanvas.classList.toggle('is-hidden', !hasResult);
     resultEmpty.classList.toggle('is-hidden', hasResult);

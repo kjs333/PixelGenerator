@@ -1,10 +1,12 @@
 import {
   FREEHAND_SIZE,
+  MAX_FREEHAND_ZOOM,
   MAX_PIXEL_BRUSH,
   MAX_PIXEL_ZOOM,
   MAX_SAVED_COLORS,
   MAX_UNDO,
   MAX_UNDO_BYTES,
+  MIN_FREEHAND_ZOOM,
 } from '../../config/constants';
 import { rgbToHex } from '../../core/hsv';
 import type { PixelBuffer } from '../../core/types';
@@ -72,6 +74,7 @@ const PAPER = '#ffffff';
 const MAX_FREEHAND_SCALE = 2; // 작은 캔버스를 화면에서 최대 2배까지 키워 보여 준다
 const STAGE_PADDING = 32;
 const MIN_CURSOR_DIAMETER = 4;
+const FREEHAND_ZOOM_STEP = 1.25; // Ctrl+휠 한 칸에 1.25배씩
 
 const TEXT_INPUT_TYPES = ['text', 'number', 'search', 'email', 'url', 'password', 'tel'];
 const isTyping = (target: EventTarget | null) =>
@@ -119,9 +122,10 @@ export function createPaintEditor(opt: PaintEditorOptions): PaintEditor {
   let last: Point | null = null;
   let dirty: Bounds | null = null;
   let scale = 1;
+  let zoomed = false; // Ctrl+휠로 배율을 직접 정했으면 창 크기가 바뀌어도 화면 맞춤으로 되돌리지 않는다
 
   // ── 좌표 ──
-  const pointOf = (e: PointerEvent): Point => {
+  const pointOf = (e: MouseEvent): Point => {
     const rect = canvas.getBoundingClientRect();
     return {
       x: ((e.clientX - rect.left) * canvas.width) / rect.width,
@@ -129,7 +133,7 @@ export function createPaintEditor(opt: PaintEditorOptions): PaintEditor {
     };
   };
   /** 포인터가 가리키는 칸(pixel 모드). 이미지 밖은 가장자리 칸으로 맞춘다. */
-  const cellOf = (e: PointerEvent): Point => {
+  const cellOf = (e: MouseEvent): Point => {
     const p = pointOf(e);
     return {
       x: clampInt(Math.floor(p.x), 0, canvas.width - 1),
@@ -185,7 +189,7 @@ export function createPaintEditor(opt: PaintEditorOptions): PaintEditor {
     cursor.style.width = `${d}px`;
     cursor.style.height = `${d}px`;
   };
-  const moveCursor = (e: PointerEvent) => {
+  const moveCursor = (e: MouseEvent) => {
     const d = cursorLength();
     if (isPixel) {
       const cell = cellOf(e);
@@ -386,8 +390,10 @@ export function createPaintEditor(opt: PaintEditorOptions): PaintEditor {
 
   const undoButton = h('button', { class: 'btn', type: 'button', title: `${copy.undo} (Ctrl+Z)` }, copy.undo);
   const redoButton = h('button', { class: 'btn', type: 'button', title: `${copy.redo} (Ctrl+Shift+Z)` }, copy.redo);
+  const fitButton = h('button', { class: 'btn', type: 'button', title: `${copy.fitView} (Ctrl+F)` }, copy.fitView);
   undoButton.addEventListener('click', undo);
   redoButton.addEventListener('click', redo);
+  fitButton.addEventListener('click', () => fitView());
   const syncHistoryButtons = () => {
     undoButton.toggleAttribute('disabled', !history.canUndo());
     redoButton.toggleAttribute('disabled', !history.canRedo());
@@ -397,6 +403,11 @@ export function createPaintEditor(opt: PaintEditorOptions): PaintEditor {
   const onKey = (e: KeyboardEvent) => {
     if (closePicker || isTyping(e.target)) return; // 색 선택 창이 열려 있으면 그림 단축키는 쓰지 않는다
     if (e.ctrlKey || e.metaKey) {
+      if (e.key.toLowerCase() === 'f') {
+        e.preventDefault(); // 브라우저 찾기 창 대신 화면 맞춤
+        fitView();
+        return;
+      }
       if (e.key.toLowerCase() !== 'z') return;
       e.preventDefault();
       if (last) return; // 그리는 중에는 되돌리지 않는다
@@ -418,26 +429,64 @@ export function createPaintEditor(opt: PaintEditorOptions): PaintEditor {
     h('label', { class: 'field' }, isPixel ? copy.brushSize : copy.drawSize, sizeInput, sizeOutput),
     undoButton,
     redoButton,
+    fitButton,
   );
   const stage = h('div', { class: 'draw-stage' }, h('div', { class: 'draw-canvas-wrap' }, canvas, cursor));
 
-  // 화면 크기에 맞춰 캔버스를 보여 준다(커서도 같은 비율로 맞춘다).
-  // freehand: 비율대로 최대 2배까지. pixel: 칸이 또렷하도록 정수 배율만.
-  const layout = () => {
-    const fit = Math.min(
-      (stage.clientWidth - STAGE_PADDING) / canvas.width,
-      (stage.clientHeight - STAGE_PADDING) / canvas.height,
-    );
-    scale = isPixel
-      ? clampInt(Math.floor(fit), 1, MAX_PIXEL_ZOOM)
-      : Math.max(0.01, Math.min(MAX_FREEHAND_SCALE, fit));
+  const applyScale = (next: number) => {
+    scale = next;
     canvas.style.width = `${Math.max(1, Math.floor(canvas.width * scale))}px`;
     canvas.style.height = `${Math.max(1, Math.floor(canvas.height * scale))}px`;
     sizeCursor();
   };
+
+  // 화면 크기에 맞춰 캔버스를 보여 준다(커서도 같은 비율로 맞춘다).
+  // freehand: 비율대로 최대 2배까지. pixel: 칸이 또렷하도록 정수 배율만.
+  const layout = () => {
+    if (zoomed) return;
+    const fit = Math.min(
+      (stage.clientWidth - STAGE_PADDING) / canvas.width,
+      (stage.clientHeight - STAGE_PADDING) / canvas.height,
+    );
+    applyScale(
+      isPixel ? clampInt(Math.floor(fit), 1, MAX_PIXEL_ZOOM) : Math.max(0.01, Math.min(MAX_FREEHAND_SCALE, fit)),
+    );
+  };
   layout();
   const observer = new ResizeObserver(layout);
+  /** Ctrl+휠로 바꾼 배율을 버리고 다시 화면에 맞춘다. */
+  function fitView() {
+    zoomed = false;
+    layout();
+    stage.scrollLeft = 0;
+    stage.scrollTop = 0;
+  }
   observer.observe(stage);
+
+  // Ctrl+휠: 마우스가 가리키는 곳을 기준으로 확대·축소한다(브라우저 페이지 확대는 막는다).
+  // pixel은 칸이 또렷하도록 정수 배율로만 움직인다.
+  const onWheel = (e: WheelEvent) => {
+    if (!(e.ctrlKey || e.metaKey)) return;
+    e.preventDefault();
+    if (e.deltaY === 0) return;
+    const zoomIn = e.deltaY < 0;
+    const next = isPixel
+      ? clampInt(scale + (zoomIn ? 1 : -1) * Math.max(1, Math.round(scale / 8)), 1, MAX_PIXEL_ZOOM)
+      : Math.min(MAX_FREEHAND_ZOOM, Math.max(MIN_FREEHAND_ZOOM, zoomIn ? scale * FREEHAND_ZOOM_STEP : scale / FREEHAND_ZOOM_STEP));
+    if (next === scale) return;
+
+    // 바꾸기 전에 마우스 아래에 있던 캔버스 지점이 바꾼 뒤에도 마우스 아래에 오도록 스크롤을 옮긴다
+    const before = canvas.getBoundingClientRect();
+    const ax = (e.clientX - before.left) / scale;
+    const ay = (e.clientY - before.top) / scale;
+    zoomed = true;
+    applyScale(next);
+    const after = canvas.getBoundingClientRect();
+    stage.scrollLeft += after.left + ax * scale - e.clientX;
+    stage.scrollTop += after.top + ay * scale - e.clientY;
+    if (!cursor.classList.contains('is-hidden')) moveCursor(e);
+  };
+  stage.addEventListener('wheel', onWheel, { passive: false });
 
   return {
     toolbar,
@@ -451,6 +500,7 @@ export function createPaintEditor(opt: PaintEditorOptions): PaintEditor {
     destroy() {
       closePicker?.();
       observer.disconnect();
+      stage.removeEventListener('wheel', onWheel);
       document.removeEventListener('keydown', onKey);
     },
   };

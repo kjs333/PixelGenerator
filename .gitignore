@@ -1,3 +1,8 @@
 node_modules
 dist
 *.log
+
+# 비밀 값(API 키). 절대 커밋하지 않는다. 예시 파일만 허용
+.env
+.env.*
+!.env.example

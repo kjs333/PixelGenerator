@@ -33,14 +33,17 @@ export const copy = {
   cancel: '취소',
   undo: '실행 취소',
   redo: '다시 실행',
+  fitView: '화면 맞춤',
   cancelDrawing: '그리기 취소',
   drawOnSource: '원본에 그리기',
 
   stepConvert: '① 변환',
   stepAnimate: '② 레이어·애니메이션',
   stepSheet: '③ 스프라이트 시트',
-  exportPng: 'PNG 내보내기',
-  exportDisabledTip: '스프라이트 시트를 만들면 내보낼 수 있어요',
+  generateAnimation: '애니메이션 생성',
+  generatingAnimation: '확인하는 중…',
+  generateAnimationTip: '픽셀 결과로 애니메이션을 만들어요',
+  generateAnimationDisabledTip: '먼저 변환해서 픽셀 결과를 만들어 주세요',
   stepNotReady: '아직 만들지 않은 단계예요',
 
   resolution: '해상도',
@@ -97,4 +100,6 @@ export const noticeText: Record<NoticeCode, string> = {
   'convert-failed': '변환하지 못했어요. 옵션을 바꿔서 다시 눌러 주세요.',
   saved: 'PNG를 저장했어요.',
   'save-failed': 'PNG를 저장하지 못했어요. 다시 시도해 주세요.',
+  'ai-connected': 'Pixellab에 연결했어요.',
+  'ai-failed': 'Pixellab에 연결하지 못했어요. 잠시 뒤 다시 시도해 주세요.',
 };
