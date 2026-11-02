@@ -124,7 +124,7 @@
 /* ── 위 띠(로고 + Home) ── */
 .screen.convert {
   display: grid;
-  grid-template-rows: auto auto auto 1fr auto;
+  grid-template-rows: auto auto auto 1fr; /* 하단 띠를 없앤 뒤의 줄 구성 */
   height: 100%;
 }
 
@@ -329,14 +329,6 @@
   margin: 0;
   padding: var(--space-4);
   background: var(--panel);
-}
-
-.statusbar {
-  min-height: 32px;
-  padding: var(--space-2) var(--space-4);
-  border-top: 1px solid var(--line);
-  background: var(--panel);
-  color: var(--ink-muted);
 }
 
 /* ── 직접 그리기 ── */

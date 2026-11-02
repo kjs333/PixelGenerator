@@ -163,7 +163,6 @@ export const convertScreen: Screen = (host, { store, actions }) => {
   const sourceWrap = h('div', { class: 'canvas-wrap is-source' }, sourceCanvas);
   const resultEmpty = h('p', { class: 'empty muted' }, copy.resultEmpty);
   const resultWrap = h('div', { class: 'canvas-wrap is-result' }, resultCanvas, resultEmpty);
-  const status = h('footer', { class: 'statusbar', 'aria-live': 'polite' });
   const notice = h('p', { class: 'notice', role: 'alert' });
 
   const drawOnSourceButton = h('button', { class: 'btn', type: 'button' }, copy.drawOnSource);
@@ -214,22 +213,19 @@ export const convertScreen: Screen = (host, { store, actions }) => {
   });
   const bar = topBar(actions, { trailing: animateButton });
 
-  host.append(h('div', { class: 'screen convert' }, bar, options, notice, panes, status));
+  host.append(h('div', { class: 'screen convert' }, bar, options, notice, panes));
 
   // ── 화면 갱신: 컨트롤은 다시 만들지 않고 값만 바꾼다(슬라이더 조작이 끊기지 않게) ──
-  let zoom = 1;
-
   const layoutCanvases = (state: AppState) => {
     const place = (canvas: HTMLCanvasElement, wrap: HTMLElement, integerOnly: boolean) => {
-      if (canvas.width === 0 || canvas.height === 0) return 1;
+      if (canvas.width === 0 || canvas.height === 0) return;
       const fit = Math.min(wrap.clientWidth / canvas.width, wrap.clientHeight / canvas.height);
       const scale = integerOnly ? Math.min(MAX_ZOOM, Math.max(1, Math.floor(fit))) : Math.min(1, fit);
       canvas.style.width = `${Math.max(1, Math.floor(canvas.width * scale))}px`;
       canvas.style.height = `${Math.max(1, Math.floor(canvas.height * scale))}px`;
-      return scale;
     };
     if (state.source) place(sourceCanvas, sourceWrap, false);
-    if (state.converted) zoom = place(resultCanvas, resultWrap, true);
+    if (state.converted) place(resultCanvas, resultWrap, true);
   };
 
   let drawnSource: AppState['source'] = null;
@@ -292,9 +288,6 @@ export const convertScreen: Screen = (host, { store, actions }) => {
     resultEmpty.classList.toggle('is-hidden', hasResult);
 
     layoutCanvases(state);
-    status.textContent = state.converted
-      ? `${state.converted.image.width}×${state.converted.image.height} · ${copy.statusColors} ${state.converted.palette.length}개 · ${copy.statusZoom} ${zoom * 100}%`
-      : '';
   };
 
   update(store.getState());

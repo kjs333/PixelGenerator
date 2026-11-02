@@ -154,8 +154,6 @@ export const copy = {
   original: '원본',
   result: '픽셀 결과',
   resultEmpty: '옵션을 고르고 “변환하기”를 눌러 보세요.',
-  statusZoom: '확대',
-  statusColors: '색',
 } as const;
 
 export const noticeText: Record<NoticeCode, string> = {
