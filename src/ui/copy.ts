@@ -163,7 +163,6 @@ export const noticeText: Record<NoticeCode, string> = {
   'decode-failed': '이미지를 읽지 못했어요. 다른 파일로 다시 시도해 주세요.',
   resized: '이미지가 커서 4096px에 맞게 줄였어요.',
   'convert-failed': '변환하지 못했어요. 옵션을 바꿔서 다시 눌러 주세요.',
-  saved: 'PNG를 저장했어요.',
   'save-failed': 'PNG를 저장하지 못했어요. 다시 시도해 주세요.',
   'ai-failed': '애니메이션을 만들지 못했어요. 잠시 뒤 다시 시도해 주세요.',
   'ai-timeout': '5분이 지나도 끝나지 않아 멈췄어요. 다시 시도해 주세요.',

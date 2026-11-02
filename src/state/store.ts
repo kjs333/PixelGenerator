@@ -14,7 +14,6 @@ export type NoticeCode =
   | 'decode-failed'
   | 'resized'
   | 'convert-failed'
-  | 'saved'
   | 'save-failed'
   | 'ai-failed'
   | 'ai-timeout'

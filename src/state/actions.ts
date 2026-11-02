@@ -195,13 +195,13 @@ export function createActions(store: Store<AppState>) {
       store.setState({ convertOptions: { ...store.getState().convertOptions, ...patch } });
     },
 
-    /** 변환 결과를 PNG 파일로 저장한다. scale 1이 원래 해상도. */
+    /** 변환 결과를 PNG 파일로 저장한다. scale 1이 원래 해상도. 실패할 때만 알린다. */
     async exportResult(scale: number): Promise<void> {
       const { converted } = store.getState();
       if (!converted) return;
       try {
         await savePixelPng(converted.image, scale);
-        store.setState({ notice: { kind: 'info', code: 'saved' } });
+        store.setState({ notice: null }); // 저장에 성공하면 따로 알리지 않는다
       } catch {
         store.setState({ notice: { kind: 'error', code: 'save-failed' } });
       }
