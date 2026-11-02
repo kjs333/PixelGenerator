@@ -777,8 +777,16 @@
 /* ── 스프라이트 시트 ── */
 .screen.sheet {
   display: grid;
-  grid-template-rows: auto auto auto 1fr;
+  grid-template-rows: auto auto auto 1fr auto;
   height: 100%;
+}
+
+/* 맨 아래 여백 띠. 위 띠(.stepbar)와 같은 높이와 색 */
+.bottom-bar {
+  grid-row: 5;
+  height: var(--bar-height);
+  border-top: 1px solid var(--line);
+  background: var(--panel);
 }
 
 .animation-source {

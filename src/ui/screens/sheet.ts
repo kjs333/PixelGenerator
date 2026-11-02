@@ -421,7 +421,18 @@ export const sheetScreen: Screen = (host, { store, actions }) => {
     ),
   );
 
-  host.append(h('div', { class: 'screen sheet' }, bar, sourceBar, notice, waitingArea, panes));
+  host.append(
+    h(
+      'div',
+      { class: 'screen sheet' },
+      bar,
+      sourceBar,
+      notice,
+      waitingArea,
+      panes,
+      h('footer', { class: 'bottom-bar', 'aria-hidden': 'true' }), // 맨 아래 여백 띠
+    ),
+  );
 
   // ── 화면 갱신 ──
   let drawnSource: PixelBuffer | null = null;
