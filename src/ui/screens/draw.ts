@@ -1,4 +1,4 @@
-import { homeIcon } from '../components/icons';
+import { backIcon } from '../components/icons';
 import { createPaintEditor } from '../components/paintEditor';
 import { copy } from '../copy';
 import { h } from '../dom';
@@ -14,8 +14,11 @@ export const drawScreen: Screen = (host, { store, actions }) => {
 
   const leave = base
     ? h('button', { class: 'btn', type: 'button' }, copy.cancelDrawing)
-    : h('button', { class: 'btn btn-home', type: 'button' }, homeIcon(), copy.home);
-  leave.addEventListener('click', () => (base ? actions.cancelDrawing() : actions.goStart()));
+    : h('button', { class: 'btn btn-home', type: 'button' }, backIcon(), copy.back);
+  // 빈 캔버스에서 나가면 사진 올리기·직접 그리기를 고르는 화면으로 돌아간다
+  leave.addEventListener('click', () =>
+    base ? actions.cancelDrawing() : actions.chooseMode('convert'),
+  );
   const next = h('button', { class: 'btn btn-primary', type: 'button' }, copy.toConvert);
   next.addEventListener('click', () => actions.useDrawing(editor.getBuffer()));
 

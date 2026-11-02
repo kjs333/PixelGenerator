@@ -5,6 +5,7 @@ export const copy = {
   appName: 'Pixel Generator',
   backToStart: '처음으로 돌아가기',
   home: 'Home',
+  back: '뒤로 가기',
 
   homeTitle: '무엇을 할까요?',
   homeConvertTitle: '사진 or 그림 → 픽셀',
