@@ -1,5 +1,4 @@
-import { SHEET_COLUMNS } from '../config/constants';
-import { buildSheet } from '../core/spritesheet';
+import { buildSheet, sheetColumns } from '../core/spritesheet';
 import { scaleBuffer } from '../core/scale';
 import type { PixelBuffer } from '../core/types';
 import { encodeGif, gifDelay } from './gif';
@@ -93,9 +92,9 @@ export async function savePixelPng(image: PixelBuffer, scale: number): Promise<v
   download(await encodePng(scaleBuffer(image, scale)), exportFileName(image.width, image.height, scale));
 }
 
-/** 프레임을 한 줄에 SHEET_COLUMNS개씩, 칸 사이 여백 없이 붙인 스프라이트 시트 PNG 한 장을 내려받는다. */
+/** 프레임을 정사각형에 가깝게(sheetColumns), 칸 사이 여백 없이 붙인 스프라이트 시트 PNG 한 장을 내려받는다. */
 export async function saveSheetPng(frames: PixelBuffer[]): Promise<void> {
-  const sheet = buildSheet(frames, SHEET_COLUMNS);
+  const sheet = buildSheet(frames, sheetColumns(frames.length));
   download(await encodePng(sheet), animationFileName('sheet', frames[0]!.width, frames[0]!.height, frames.length));
 }
 

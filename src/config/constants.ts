@@ -29,7 +29,6 @@ export const ANIMATION_TIMEOUT_MS = 5 * 60 * 1000; // 이 시간이 지나도 �
 export const ANIMATION_POLL_RETRIES = 3; // 상태 조회가 연달아 이만큼 실패하면 멈춘다
 
 // 스프라이트 시트·미리보기
-export const SHEET_COLUMNS = 4; // 시트 한 줄에 놓는 프레임 수
 export const DEFAULT_FPS = 8;
 export const MIN_FPS = 1;
 export const MAX_FPS = 24;

@@ -9,6 +9,14 @@ export interface SheetLayout {
   height: number;
 }
 
+/**
+ * 시트 한 줄에 놓을 프레임 수. Pixellab 시트와 같게 정사각형에 가깝게 놓는다(열 = √count 올림).
+ * 예: 5장 → 3열(3×2), 9장 → 3열(3×3), 17장 → 5열(5×4)
+ */
+export function sheetColumns(count: number): number {
+  return count < 1 ? 0 : Math.ceil(Math.sqrt(count));
+}
+
 /** 같은 크기 프레임 count개를 한 줄에 최대 columns개씩 놓았을 때의 배치. */
 export function sheetLayout(
   frameWidth: number,

@@ -1,6 +1,6 @@
-import { DEFAULT_FPS, MAX_FPS, MIN_FPS, SHEET_COLUMNS } from '../../config/constants';
+import { DEFAULT_FPS, MAX_FPS, MIN_FPS } from '../../config/constants';
 import { formatAmount, type AnimationCost, type UsageCost } from '../../core/animation';
-import { sheetLayout } from '../../core/spritesheet';
+import { sheetColumns, sheetLayout } from '../../core/spritesheet';
 import type { PixelBuffer } from '../../core/types';
 import type { AppState } from '../../state/store';
 import { openAnimateDialog } from '../components/animateDialog';
@@ -271,7 +271,7 @@ export const sheetScreen: Screen = (host, { store, actions }) => {
       frames[0]!.width,
       frames[0]!.height,
       frames.length,
-      SHEET_COLUMNS,
+      sheetColumns(frames.length),
     );
     grid.style.gridTemplateColumns = `repeat(${columns}, auto)`;
     const scale = integerFit(
@@ -488,7 +488,7 @@ export const sheetScreen: Screen = (host, { store, actions }) => {
       if (gridRebuilt || stripRebuilt) marked = -1;
       layoutGrid();
       const { width, height } = frames[0]!;
-      const sheet = sheetLayout(width, height, frames.length, SHEET_COLUMNS);
+      const sheet = sheetLayout(width, height, frames.length, sheetColumns(frames.length));
       sheetInfo.textContent = `${width}×${height} ${copy.sheetFrame} ${frames.length}개 → ${sheet.width}×${sheet.height} PNG`;
     } else {
       sheetInfo.textContent = '';

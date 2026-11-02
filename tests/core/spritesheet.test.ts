@@ -1,7 +1,20 @@
 import { describe, expect, test } from 'vitest';
 import { getPixel } from '../../src/core/buffer';
-import { buildSheet, sheetLayout } from '../../src/core/spritesheet';
+import { buildSheet, sheetColumns, sheetLayout } from '../../src/core/spritesheet';
 import { solid } from '../helpers';
+
+describe('sheetColumns', () => {
+  test('Pixellab 시트처럼 정사각형에 가깝게 놓는다(원본 포함 장수 기준)', () => {
+    expect(sheetLayout(32, 32, 5, sheetColumns(5))).toMatchObject({ columns: 3, rows: 2 }); // 4프레임 요청
+    expect(sheetLayout(32, 32, 9, sheetColumns(9))).toMatchObject({ columns: 3, rows: 3 }); // 8프레임 요청
+    expect(sheetLayout(32, 32, 17, sheetColumns(17))).toMatchObject({ columns: 5, rows: 4 }); // 16프레임 요청
+  });
+
+  test('장수에 따른 열 수', () => {
+    expect([1, 2, 4, 5, 9, 10, 16, 17].map(sheetColumns)).toEqual([1, 2, 2, 3, 3, 4, 4, 5]);
+    expect(sheetColumns(0)).toBe(0);
+  });
+});
 
 describe('sheetLayout', () => {
   test('8프레임을 4열로 놓으면 4×2, 칸 사이 여백 없음', () => {
