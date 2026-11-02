@@ -1,5 +1,17 @@
 import type { PixelBuffer, RGBA } from '../src/core/types';
 
+/** 가로·세로만 맞춘 PNG 머리(시그니처 + IHDR 앞부분). 크기를 읽는 코드를 시험할 때 쓴다. */
+export function pngHeader(width: number, height: number): Uint8Array {
+  const bytes = new Uint8Array(33);
+  bytes.set([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
+  const view = new DataView(bytes.buffer);
+  view.setUint32(8, 13);
+  view.setUint32(12, 0x49484452); // 'IHDR'
+  view.setUint32(16, width);
+  view.setUint32(20, height);
+  return bytes;
+}
+
 /** 픽셀 목록(왼쪽 위부터 가로 방향)으로 버퍼를 만든다. */
 export function fromPixels(width: number, height: number, pixels: RGBA[]): PixelBuffer {
   if (pixels.length !== width * height) {

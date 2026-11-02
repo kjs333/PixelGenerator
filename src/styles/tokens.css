@@ -23,4 +23,5 @@
   --space-8: 32px;
 
   --radius: 2px;
+  --bar-height: 56px; /* 화면 맨 위 띠 높이(모든 화면 같게) */
 }

@@ -1,20 +1,17 @@
-/* ── 시작 화면 ── */
-.screen.start {
+/* ── 첫 화면·변환 시작 화면: 위 띠 + 가운데 선택지 ── */
+.screen.landing {
+  display: grid;
+  grid-template-rows: auto 1fr;
+  height: 100%;
+}
+
+.start {
   display: flex;
   flex-direction: column;
   gap: var(--space-4);
   align-items: center;
   justify-content: center;
-  min-height: 100%;
   padding: var(--space-8);
-}
-
-.start-logo {
-  position: absolute;
-  top: var(--space-6);
-  left: var(--space-6);
-  font-family: var(--font-pixel);
-  font-size: 22px;
 }
 
 .choices {
@@ -23,8 +20,17 @@
   gap: var(--space-4);
 }
 
+/* 첫 화면으로 가는 Home 버튼: 집 아이콘 + 글자 */
+.btn-home {
+  display: inline-flex;
+  gap: var(--space-2);
+  align-items: center;
+}
+
 /* 두 선택지는 같은 크기, 같은 무게 */
 .choice {
+  /* 카드 안 문구의 줄바꿈(\n)을 그대로 보여 준다 */
+  white-space: pre-line;
   display: flex;
   flex-direction: column;
   gap: var(--space-2);
@@ -53,19 +59,82 @@
   font-size: 20px;
 }
 
-/* ── 단계 바 ── */
+/* ── 픽셀 그림 올리기(애니메이션 경로) ── */
+.screen.pixel-upload {
+  display: grid;
+  grid-template-rows: auto 1fr;
+  height: 100%;
+}
+
+/* 그림(또는 올리기 카드)과 그 아래 알림을 가운데에 세로로 놓는다 */
+.pixel-upload-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-8);
+}
+
+.pixel-upload-notice {
+  max-width: min(480px, 100%);
+  text-align: center;
+}
+
+.pixel-upload-body .dropzone {
+  width: min(480px, 100%);
+}
+
+.pixel-preview {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  margin: 0;
+}
+
+/* 비율을 지켜 칸을 꽉 채우고, 투명한 칸은 체크무늬로 보인다 */
+.pixel-preview-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: min(384px, 80vw);
+  height: min(384px, 80vw);
+  border: 1px solid var(--line);
+  background-color: var(--paper);
+  background-image:
+    linear-gradient(45deg, var(--paper-check) 25%, transparent 25%, transparent 75%, var(--paper-check) 75%),
+    linear-gradient(45deg, var(--paper-check) 25%, transparent 25%, transparent 75%, var(--paper-check) 75%);
+  background-position: 0 0, 8px 8px;
+  background-size: 16px 16px;
+}
+
+.pixel-preview-caption {
+  display: flex;
+  justify-content: center;
+}
+
+.pixel-preview-canvas {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  image-rendering: pixelated;
+}
+
+/* ── 위 띠(로고 + Home) ── */
 .screen.convert {
   display: grid;
   grid-template-rows: auto auto auto 1fr auto;
   height: 100%;
 }
 
+/* 위 띠(.stepbar)와 그리기·결과 수정 화면의 도구 띠(.draw-bar)는 같은 높이 */
 .stepbar {
   display: flex;
   gap: var(--space-6);
   align-items: center;
   justify-content: space-between;
-  padding: var(--space-3) var(--space-4);
+  min-height: var(--bar-height);
+  padding: 0 var(--space-4);
   border-bottom: 1px solid var(--line);
   background: var(--panel);
 }
@@ -85,27 +154,6 @@
   cursor: pointer;
 }
 
-.steps {
-  display: flex;
-  gap: var(--space-1);
-  margin: 0;
-  padding: 0;
-  list-style: none;
-  font-family: var(--font-pixel);
-  font-size: 11px;
-}
-
-.step {
-  padding: var(--space-2) var(--space-4);
-  border: 1px solid var(--line);
-  color: var(--ink-muted);
-}
-
-.step.is-current {
-  border-color: var(--blue);
-  background: var(--blue);
-  color: var(--on-blue);
-}
 
 /* ── 옵션 줄 ── */
 .options {
@@ -302,7 +350,8 @@
   gap: var(--space-6);
   align-items: center;
   justify-content: space-between;
-  padding: var(--space-3) var(--space-4);
+  min-height: var(--bar-height);
+  padding: 0 var(--space-4);
   border-bottom: 1px solid var(--line);
   background: var(--panel);
 }
@@ -537,6 +586,11 @@
   padding: 0;
 }
 
+/* 선택된 버튼(.btn[aria-pressed])의 좌우 여백이 아이콘을 줄이지 않게 한다 */
+.icon-btn[aria-pressed='true'] {
+  padding: 0;
+}
+
 .icon {
   display: block;
 }
@@ -650,4 +704,306 @@
   border-radius: 50%;
   outline: 1px solid #fff;
   pointer-events: none;
+}
+
+/* ── 단계 바: 눌러서 갈 수 있는 단계 ── */
+/* ── 애니메이션 생성 창 ── */
+.animate-dialog {
+  width: 400px;
+}
+
+.dialog-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.text-input {
+  min-height: 32px;
+  padding: var(--space-1) var(--space-2);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--desk);
+  color: var(--ink);
+  font: inherit;
+}
+
+.dialog-note {
+  margin: 0;
+  font-size: 13px;
+}
+
+/* ── 스프라이트 시트 ── */
+.screen.sheet {
+  display: grid;
+  grid-template-rows: auto auto auto 1fr;
+  height: 100%;
+}
+
+.animation-source {
+  display: flex;
+  gap: var(--space-4);
+  align-items: center;
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--line);
+  background: var(--panel);
+}
+
+/* 애니메이션에 쓴 픽셀 결과: 작은 체크무늬 칸 안에 비율을 지켜 보여 준다 */
+.source-thumb-wrap {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 64px;
+  height: 64px;
+  border: 1px solid var(--line);
+  background-color: var(--paper);
+  background-image:
+    linear-gradient(45deg, var(--paper-check) 25%, transparent 25%, transparent 75%, var(--paper-check) 75%),
+    linear-gradient(45deg, var(--paper-check) 25%, transparent 25%, transparent 75%, var(--paper-check) 75%);
+  background-position: 0 0, 4px 4px;
+  background-size: 8px 8px;
+}
+
+.source-thumb {
+  display: block;
+  max-width: 100%;
+  max-height: 100%;
+}
+
+.source-thumb.pixelated {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  image-rendering: pixelated;
+}
+
+.source-text {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-width: 0;
+}
+
+.source-info {
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 프레임 영역도 만드는 중 안내와 같은 늘어나는 넷째 줄에 둔다(알림이 비어도 자리가 바뀌지 않게) */
+.screen.sheet > .panes {
+  grid-row: 4;
+}
+
+.screen.sheet > .notice {
+  margin: var(--space-2) var(--space-4) 0;
+}
+
+.sheet-wrap {
+  overflow: auto;
+}
+
+.sheet-grid {
+  display: grid;
+  gap: 2px;
+  margin: auto;
+}
+
+.sheet-frame {
+  position: relative;
+  padding: 0;
+  border: 0;
+  outline: 1px solid var(--line);
+  background: none;
+  line-height: 0;
+  cursor: pointer;
+}
+
+.sheet-frame:hover {
+  outline: 2px solid var(--ink-muted);
+}
+
+.sheet-frame.is-playing {
+  outline: 2px solid var(--blue);
+}
+
+.sheet-frame:focus-visible {
+  outline: 3px solid var(--blue);
+  outline-offset: 2px;
+}
+
+.sheet-frame-number {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  padding: 2px var(--space-1);
+  border-radius: var(--radius);
+  background: rgb(0 0 0 / 60%);
+  color: #fff;
+  font-family: var(--font-pixel);
+  font-size: 10px;
+  line-height: 1;
+}
+
+/* 만드는 중: 시트·미리보기 자리를 다 쓰고 안내를 한가운데에 둔다 */
+.sheet-waiting-area {
+  /* 알림이 비면 display: none이 되어 칸에서 빠지므로, 늘어나는 넷째 줄에 고정해야 가운데에 온다 */
+  grid-row: 4;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-4);
+}
+
+.sheet-waiting {
+  border-radius: var(--radius);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  align-items: center;
+  padding: var(--space-6);
+  background: var(--panel);
+  color: var(--ink);
+  text-align: center;
+}
+
+.sheet-waiting p {
+  margin: 0;
+}
+
+.spinner {
+  width: 24px;
+  height: 24px;
+  border: 3px solid var(--line);
+  border-top-color: var(--blue);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spinner {
+    animation: none;
+  }
+}
+
+.sheet-info {
+  margin: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+.preview-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+  align-items: center;
+}
+
+/* ── 프레임 편집 창: 결과 수정 화면과 같은 틀을 창 안에 넣는다 ── */
+.frame-editor {
+  display: grid;
+  grid-template-rows: auto 1fr;
+  width: 92vw;
+  height: 90vh;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--desk);
+  color: var(--ink);
+  overflow: hidden;
+}
+
+.frame-editor .dialog-title {
+  white-space: nowrap;
+}
+
+/* 미리보기 아래: 프레임을 순서대로 작게. 누르면 미리보기에서 크게 본다. */
+.preview-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.strip-frame {
+  position: relative;
+  padding: 0;
+  border: 0;
+  outline: 1px solid var(--line);
+  background-color: var(--paper);
+  line-height: 0;
+  cursor: pointer;
+}
+
+.strip-frame canvas {
+  width: auto;
+  height: 40px;
+}
+
+.strip-frame:hover {
+  outline: 2px solid var(--ink-muted);
+}
+
+.strip-frame.is-playing {
+  outline: 2px solid var(--blue);
+}
+
+.strip-frame:focus-visible {
+  outline: 3px solid var(--blue);
+  outline-offset: 2px;
+}
+
+/* 애니메이션 생성 창: 긴 동작 설명과 작성 요령 */
+.action-input {
+  resize: vertical;
+}
+
+.field-hint {
+  font-size: 12px;
+}
+
+.field-hint p {
+  margin: 0;
+}
+
+.field-hint p + p {
+  margin-top: var(--space-1);
+}
+
+.field-example {
+  font-style: italic;
+}
+
+/* 시트 화면 위: Pixellab이 늘린 설명. 두 줄까지 보이고 나머지는 마우스를 올리면 보인다. */
+/* 스프라이트 시트 화면 위쪽: 동작 설명·늘린 설명 버튼과 그 말풍선 */
+.source-descriptions {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.description-tip {
+  width: 480px;
+  overflow-wrap: anywhere;
+}
+
+.description-tip p {
+  margin-bottom: 0;
+}
+
+/* 애니메이션 생성 창: 보내기 버튼 바로 위의 Pixellab 잔액 */
+.balance-info {
+  margin: 0;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--desk);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
 }

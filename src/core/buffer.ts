@@ -22,6 +22,14 @@ export function cloneBuffer(buf: PixelBuffer): PixelBuffer {
   return { width: buf.width, height: buf.height, data: new Uint8ClampedArray(buf.data) };
 }
 
+/** 완전히 불투명하지 않은 칸이 하나라도 있는지. */
+export function hasTransparency(buf: PixelBuffer): boolean {
+  for (let i = 3; i < buf.data.length; i += 4) {
+    if (buf.data[i]! < 255) return true;
+  }
+  return false;
+}
+
 export function getPixel(buf: PixelBuffer, x: number, y: number): RGBA {
   const i = indexOf(buf, x, y);
   return [buf.data[i]!, buf.data[i + 1]!, buf.data[i + 2]!, buf.data[i + 3]!];

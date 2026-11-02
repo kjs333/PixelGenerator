@@ -25,9 +25,11 @@ import { copy } from '../copy';
 import { h } from '../dom';
 import { readBuffer } from '../render';
 import { openColorPicker } from './colorPicker';
+import { eraserIcon, penIcon } from './icons';
 
 /**
- * freehand: 그림판처럼 자유롭게 그린다(둥근 붓, 부드러운 가장자리, 지우개는 흰색).
+ * freehand: 그림판처럼 자유롭게 그린다(둥근 붓, 부드러운 가장자리).
+ *   지우개는 빈 캔버스에서는 흰색, 원본 위에 덧그릴 때는 원본을 다시 칠해서 덧그린 것만 지운다.
  * pixel: 칸 단위로 칠한다(N×N 정사각형 붓, 번짐 없음, 지우개는 투명).
  */
 export type PaintMode = 'freehand' | 'pixel';
@@ -93,12 +95,16 @@ export function createPaintEditor(opt: PaintEditorOptions): PaintEditor {
   canvas.height = base ? base.height : FREEHAND_SIZE;
   const ctx = canvas.getContext('2d', { willReadFrequently: true });
   if (!ctx) throw new Error('캔버스를 쓸 수 없어요');
-  if (base) {
-    ctx.putImageData(new ImageData(new Uint8ClampedArray(base.data), base.width, base.height), 0, 0);
-  } else {
-    ctx.fillStyle = PAPER;
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-  }
+  /** 처음 상태(원본, 없으면 흰 캔버스)로 칠한다. 시작할 때와 초기화할 때 쓴다. */
+  const paintInitial = () => {
+    if (base) {
+      ctx.putImageData(new ImageData(new Uint8ClampedArray(base.data), base.width, base.height), 0, 0);
+    } else {
+      ctx.fillStyle = PAPER;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+    }
+  };
+  paintInitial();
   ctx.lineCap = 'round';
   ctx.lineJoin = 'round';
 
@@ -211,7 +217,16 @@ export function createPaintEditor(opt: PaintEditorOptions): PaintEditor {
   };
 
   // freehand
-  const inkColor = () => (tool === 'eraser' ? PAPER : color);
+  // 원본 위에 덧그릴 때 지우개는 원본을 무늬로 칠한다. 무늬는 캔버스 원점에 맞춰지므로 지운 자리에 그 위치의 원본이 돌아온다.
+  let originalPattern: CanvasPattern | null = null;
+  if (base && !isPixel) {
+    const original = document.createElement('canvas');
+    original.width = base.width;
+    original.height = base.height;
+    original.getContext('2d')?.putImageData(new ImageData(new Uint8ClampedArray(base.data), base.width, base.height), 0, 0);
+    originalPattern = ctx.createPattern(original, 'no-repeat');
+  }
+  const inkColor = () => (tool === 'eraser' ? (originalPattern ?? PAPER) : color);
   const dot = (p: Point) => {
     ctx.fillStyle = inkColor();
     ctx.beginPath();
@@ -282,6 +297,13 @@ export function createPaintEditor(opt: PaintEditorOptions): PaintEditor {
     syncHistoryButtons();
     if (patch) opt.onChange?.();
   };
+  /** 그린 것을 모두 지우고 처음 상태로 되돌린다. 붓질 한 번처럼 기록하므로 실행 취소할 수 있다. */
+  const reset = () => {
+    if (last) return; // 그리는 중에는 지우지 않는다
+    paintInitial();
+    markDirty(0, 0, canvas.width, canvas.height);
+    commitStroke();
+  };
 
   canvas.addEventListener('pointerenter', (e) => {
     if (eyedrop) return; // 스포이드로 찍는 중에는 붓 커서를 보여 주지 않는다
@@ -325,8 +347,13 @@ export function createPaintEditor(opt: PaintEditorOptions): PaintEditor {
   canvas.addEventListener('pointercancel', commitStroke);
 
   // ── 도구 모음 ──
-  const penButton = h('button', { class: 'btn tool', type: 'button', title: `${copy.drawPen} (B)` }, copy.drawPen);
-  const eraserButton = h('button', { class: 'btn tool', type: 'button', title: `${copy.drawEraser} (E)` }, copy.drawEraser);
+  // 그리기·원본에 그리기 화면은 펜·지우개를 아이콘으로 보여 준다(이름은 aria-label과 title로 남긴다)
+  const toolButton = (label: string, key: string, icon: () => SVGSVGElement) =>
+    isPixel
+      ? h('button', { class: 'btn tool', type: 'button', title: `${label} (${key})` }, label)
+      : h('button', { class: 'btn tool icon-btn', type: 'button', title: `${label} (${key})`, 'aria-label': label }, icon());
+  const penButton = toolButton(copy.drawPen, 'B', penIcon);
+  const eraserButton = toolButton(copy.drawEraser, 'E', eraserIcon);
   const selectTool = (next: Tool) => {
     tool = next;
     penButton.setAttribute('aria-pressed', String(tool === 'pen'));
@@ -394,6 +421,9 @@ export function createPaintEditor(opt: PaintEditorOptions): PaintEditor {
   undoButton.addEventListener('click', undo);
   redoButton.addEventListener('click', redo);
   fitButton.addEventListener('click', () => fitView());
+  // 초기화는 그리기·원본에 그리기 화면에만 둔다(결과 수정 화면은 "수정 취소"가 같은 일을 한다)
+  const resetButton = isPixel ? null : h('button', { class: 'btn', type: 'button', title: copy.drawResetTip }, copy.drawReset);
+  resetButton?.addEventListener('click', reset);
   const syncHistoryButtons = () => {
     undoButton.toggleAttribute('disabled', !history.canUndo());
     redoButton.toggleAttribute('disabled', !history.canRedo());
@@ -425,8 +455,10 @@ export function createPaintEditor(opt: PaintEditorOptions): PaintEditor {
     { class: 'draw-tools' },
     penButton,
     eraserButton,
-    h('span', { class: 'field' }, copy.drawColor, colorButton),
+    // 색 버튼에는 이미 aria-label이 있다. 그리기 화면에서는 앞의 "색" 글자를 뺀다.
+    isPixel ? h('span', { class: 'field' }, copy.drawColor, colorButton) : colorButton,
     h('label', { class: 'field' }, isPixel ? copy.brushSize : copy.drawSize, sizeInput, sizeOutput),
+    resetButton,
     undoButton,
     redoButton,
     fitButton,

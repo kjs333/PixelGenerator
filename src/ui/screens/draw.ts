@@ -1,3 +1,4 @@
+import { homeIcon } from '../components/icons';
 import { createPaintEditor } from '../components/paintEditor';
 import { copy } from '../copy';
 import { h } from '../dom';
@@ -11,7 +12,9 @@ export const drawScreen: Screen = (host, { store, actions }) => {
   const base = store.getState().source; // 있으면 사진 위에 덧그리기, 없으면 빈 캔버스
   const editor = createPaintEditor({ mode: 'freehand', base });
 
-  const leave = h('button', { class: 'btn', type: 'button' }, base ? copy.cancelDrawing : copy.backToStart);
+  const leave = base
+    ? h('button', { class: 'btn', type: 'button' }, copy.cancelDrawing)
+    : h('button', { class: 'btn btn-home', type: 'button' }, homeIcon(), copy.home);
   leave.addEventListener('click', () => (base ? actions.cancelDrawing() : actions.goStart()));
   const next = h('button', { class: 'btn btn-primary', type: 'button' }, copy.toConvert);
   next.addEventListener('click', () => actions.useDrawing(editor.getBuffer()));

@@ -6,14 +6,20 @@ import { createStore, initialState, type Step } from './state/store';
 import { convertScreen } from './ui/screens/convert';
 import { drawScreen } from './ui/screens/draw';
 import { editScreen } from './ui/screens/edit';
+import { homeScreen } from './ui/screens/home';
+import { pixelUploadScreen } from './ui/screens/pixelUpload';
+import { sheetScreen } from './ui/screens/sheet';
 import { startScreen } from './ui/screens/start';
 import type { Screen } from './ui/screens/types';
 
-const SCREENS: Partial<Record<Step, Screen>> = {
+const SCREENS: Record<Step, Screen> = {
+  home: homeScreen,
   start: startScreen,
   draw: drawScreen,
   convert: convertScreen,
   edit: editScreen,
+  animate: pixelUploadScreen,
+  sheet: sheetScreen,
 };
 
 const host = document.getElementById('app');
@@ -28,8 +34,7 @@ let destroyScreen: () => void = () => {};
 function show(step: Step): void {
   destroyScreen();
   currentStep = step;
-  const screen = SCREENS[step] ?? startScreen; // 아직 없는 단계(Day 2~3)는 시작 화면으로
-  destroyScreen = screen(host!, { store, actions });
+  destroyScreen = SCREENS[step](host!, { store, actions });
 }
 
 show(store.getState().step);

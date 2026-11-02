@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest';
-import { cloneBuffer, createBuffer, getPixel, setPixel } from '../../src/core/buffer';
+import { cloneBuffer, createBuffer, getPixel, hasTransparency, setPixel } from '../../src/core/buffer';
 
 describe('buffer', () => {
   test('새 버퍼는 크기에 맞는 길이의 완전 투명 데이터를 가진다', () => {
@@ -34,5 +34,21 @@ describe('buffer', () => {
     const buf = createBuffer(2, 2);
     expect(() => getPixel(buf, 2, 0)).toThrow(RangeError);
     expect(() => setPixel(buf, 0, -1, [0, 0, 0, 0])).toThrow(RangeError);
+  });
+});
+
+describe('hasTransparency', () => {
+  test('모든 칸이 불투명하면 false', () => {
+    const buf = createBuffer(2, 2);
+    buf.data.fill(255);
+    expect(hasTransparency(buf)).toBe(false);
+  });
+
+  test('완전 투명이나 반투명 칸이 하나라도 있으면 true', () => {
+    const buf = createBuffer(2, 2);
+    buf.data.fill(255);
+    setPixel(buf, 1, 1, [10, 20, 30, 254]);
+    expect(hasTransparency(buf)).toBe(true);
+    expect(hasTransparency(createBuffer(1, 1))).toBe(true);
   });
 });

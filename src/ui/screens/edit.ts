@@ -1,6 +1,5 @@
-import { rgbToHex } from '../../core/hsv';
-import { extractPalette } from '../../core/palette';
 import { createPaintEditor } from '../components/paintEditor';
+import { createUsedColors } from '../components/usedColors';
 import { copy } from '../copy';
 import { h } from '../dom';
 import { drawBuffer } from '../render';
@@ -20,43 +19,14 @@ export const editScreen: Screen = (host, { store, actions }) => {
   }
 
   // ── 사용된 색 목록: 붓질, 실행 취소, 다시 실행 때마다 이미지에서 다시 뽑는다 ──
-  const usedColors = h('aside', { class: 'used-colors', 'aria-label': copy.usedColors });
-  let swatches: { hex: string; el: HTMLButtonElement }[] = [];
-
-  const syncPressed = () => {
-    const current = editor.getColor();
-    swatches.forEach(({ hex, el }) => el.setAttribute('aria-pressed', String(hex === current)));
-  };
-
-  const renderColors = () => {
-    const colors = extractPalette(editor.getBuffer()).map((c) => rgbToHex(c[0], c[1], c[2]));
-    swatches = colors.map((hex) => {
-      const el = h('button', {
-        class: 'swatch swatch-btn',
-        type: 'button',
-        title: hex,
-        'aria-label': `${copy.usedColorItem} ${hex}`,
-      });
-      el.style.backgroundColor = hex;
-      el.addEventListener('click', () => editor.setColor(hex)); // 누르면 그 색이 펜 색이 된다
-      return { hex, el };
-    });
-    usedColors.replaceChildren(
-      h('h2', { class: 'aside-title' }, copy.usedColors, h('span', { class: 'muted' }, ` ${colors.length}`)),
-      colors.length > 0
-        ? h('div', { class: 'swatch-list' }, ...swatches.map((s) => s.el))
-        : h('p', { class: 'muted' }, copy.usedColorsEmpty),
-    );
-    syncPressed();
-  };
-
+  const usedColors = createUsedColors(() => editor);
   const editor = createPaintEditor({
     mode: 'pixel',
     base: converted.image,
-    onChange: renderColors,
-    onColorChange: syncPressed,
+    onChange: usedColors.render,
+    onColorChange: usedColors.syncPressed,
   });
-  renderColors();
+  usedColors.render();
 
   // ── 원본: 고칠 때 참고하도록 사용된 색 오른쪽에 작게 보여 준다 ──
   const source = store.getState().source;
@@ -82,7 +52,7 @@ export const editScreen: Screen = (host, { store, actions }) => {
       'main',
       { class: 'screen draw' },
       h('header', { class: 'draw-bar' }, cancel, editor.toolbar, apply),
-      h('div', { class: 'edit-body' }, usedColors, ...(originalPane ? [originalPane] : []), editor.stage),
+      h('div', { class: 'edit-body' }, usedColors.element, ...(originalPane ? [originalPane] : []), editor.stage),
     ),
   );
 

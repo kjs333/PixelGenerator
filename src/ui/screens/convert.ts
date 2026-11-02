@@ -1,15 +1,18 @@
 import {
   ART_SIZE_PRESETS,
+  DEFAULT_ANIMATION_FRAMES,
   EXPORT_SCALES,
   MAX_ART_SIZE,
   MAX_COLORS,
   MIN_COLORS,
 } from '../../config/constants';
+import { hasTransparency } from '../../core/buffer';
 import type { DitherMode } from '../../core/types';
 import type { AppState } from '../../state/store';
+import { openAnimateDialog } from '../components/animateDialog';
 import { renderNotice } from '../components/notice';
 import { openConfirmDialog } from '../components/confirmDialog';
-import { stepBar } from '../components/stepBar';
+import { topBar } from '../components/topBar';
 import { copy } from '../copy';
 import { h } from '../dom';
 import { drawBuffer } from '../render';
@@ -26,7 +29,7 @@ const DITHER_CHOICES: { mode: DitherMode; label: string; name: string }[] = [
 const clampSize = (value: number, fallback: number) =>
   Number.isFinite(value) ? Math.min(MAX_ART_SIZE, Math.max(1, Math.round(value))) : fallback;
 
-/** ① 변환 화면: 옵션을 고르고 "변환하기"를 누르면 원본(왼쪽) / 결과(오른쪽)를 나란히 보여 준다. */
+/** 변환 화면: 옵션을 고르고 "변환하기"를 누르면 원본(왼쪽) / 결과(오른쪽)를 나란히 보여 준다. */
 export const convertScreen: Screen = (host, { store, actions }) => {
   let customMode = false;
 
@@ -189,10 +192,29 @@ export const convertScreen: Screen = (host, { store, actions }) => {
     h('figure', { class: 'pane' }, h('figcaption', { class: 'pane-caption' }, copy.result, exportControls), resultWrap),
   );
 
+  // 애니메이션 생성: 동작 설명과 프레임 수를 묻는 창을 띄우고, 보내면 스프라이트 시트 화면으로 넘어간다
+  let closeAnimate: (() => void) | null = null;
   const animateButton = h('button', { class: 'btn btn-primary', type: 'button' }, copy.generateAnimation);
-  animateButton.addEventListener('click', () => void actions.generateAnimation());
+  animateButton.addEventListener('click', () => {
+    const { converted, animation } = store.getState();
+    if (!converted || closeAnimate) return;
+    closeAnimate = openAnimateDialog({
+      width: converted.image.width,
+      height: converted.image.height,
+      action: animation?.action ?? '',
+      frameCount: animation?.frameCount ?? DEFAULT_ANIMATION_FRAMES,
+      // 처음에는 그림에 투명한 칸이 있으면 투명 배경으로 만든다
+      transparent: hasTransparency(converted.image),
+      enhance: animation?.enhance ?? false, // 추가 비용이 들므로 처음에는 끈다
+      onSubmit: (request) => void actions.generateAnimation(request, 'result'),
+      onClose: () => {
+        closeAnimate = null;
+      },
+    });
+  });
+  const bar = topBar(actions, { trailing: animateButton });
 
-  host.append(h('div', { class: 'screen convert' }, stepBar(actions, animateButton), options, notice, panes, status));
+  host.append(h('div', { class: 'screen convert' }, bar, options, notice, panes, status));
 
   // ── 화면 갱신: 컨트롤은 다시 만들지 않고 값만 바꾼다(슬라이더 조작이 끊기지 않게) ──
   let zoom = 1;
@@ -283,6 +305,7 @@ export const convertScreen: Screen = (host, { store, actions }) => {
 
   return () => {
     closeConfirm?.();
+    closeAnimate?.();
     unsubscribe();
     observer.disconnect();
     document.removeEventListener('click', onDocumentClick);
