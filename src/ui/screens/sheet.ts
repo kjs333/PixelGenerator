@@ -1,5 +1,4 @@
 import { DEFAULT_FPS, MAX_FPS, MIN_FPS } from '../../config/constants';
-import { formatAmount, type AnimationCost, type UsageCost } from '../../core/animation';
 import { sheetColumns, sheetLayout } from '../../core/spritesheet';
 import type { PixelBuffer } from '../../core/types';
 import type { AppState } from '../../state/store';
@@ -19,23 +18,6 @@ const MAX_ZOOM = 32;
 const formatElapsed = (ms: number) => {
   const seconds = Math.max(0, Math.floor(ms / 1000));
   return `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, '0')}`;
-};
-
-const formatCost = (cost: UsageCost) =>
-  cost.unit === 'usd'
-    ? `$${formatAmount(cost.amount)}`
-    : `${formatAmount(cost.amount)} ${copy.costUnitGenerations}`;
-
-/** 예: "이번 요청 비용: 생성 1 생성분 + 설명 늘리기 0.05 생성분". 설명 늘리기는 요청했을 때만 붙인다. */
-const costText = (cost: AnimationCost, enhanceRequested: boolean) => {
-  const parts = [
-    `${copy.costGeneration} ${cost.generation ? formatCost(cost.generation) : copy.costUnknown}`,
-  ];
-  if (enhanceRequested)
-    parts.push(
-      cost.enhance ? `${copy.costEnhance} ${formatCost(cost.enhance)}` : copy.costEnhanceFree,
-    );
-  return `${copy.costTitle}: ${parts.join(' + ')}`;
 };
 
 /** 칸이 또렷하도록 정수 배율로만 맞춘다. */
@@ -107,7 +89,6 @@ export const sheetScreen: Screen = (host, { store, actions }) => {
   // ── 위: 애니메이션에 쓴 픽셀 결과 ──
   const sourceCanvas = h('canvas', { class: 'source-thumb pixelated' });
   const sourceInfo = h('p', { class: 'source-info muted' });
-  const costInfo = h('p', { class: 'source-info muted' });
 
   // 설명은 길어서 버튼을 눌렀을 때만 말풍선으로 보여 준다. 한 번에 하나만 열린다.
   const descriptionTip = (id: string, label: string, title: string) => {
@@ -190,7 +171,6 @@ export const sheetScreen: Screen = (host, { store, actions }) => {
       { class: 'source-text' },
       h('strong', {}, copy.animationSource),
       sourceInfo,
-      costInfo,
       descriptions,
     ),
     regenerateButton,
@@ -459,9 +439,6 @@ export const sheetScreen: Screen = (host, { store, actions }) => {
     enhancedTip.text.textContent = animation.enhancedPrompt ?? '';
     enhancedTip.wrap.classList.toggle('is-hidden', animation.enhancedPrompt === null);
     if (animation.enhancedPrompt === null) enhancedTip.setOpen(false);
-    // 비용은 생성 시작 응답에 온다. 받기 전(보내는 중)에는 숨긴다.
-    costInfo.classList.toggle('is-hidden', animation.cost === null);
-    costInfo.textContent = animation.cost ? costText(animation.cost, animation.enhance) : '';
 
     regenerateButton.toggleAttribute('disabled', state.aiBusy);
     regenerateButton.setAttribute('aria-busy', String(state.aiBusy));
