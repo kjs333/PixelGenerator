@@ -69,7 +69,7 @@ export function createActions(store: Store<AppState>) {
     }
   };
 
-  return {
+  const actions = {
     /** 처음(두 갈래 고르기)으로 돌아간다. 만든 것은 모두 버린다. */
     goStart(): void {
       animationRun++;
@@ -161,13 +161,28 @@ export function createActions(store: Store<AppState>) {
       store.setState({ step: 'edit', notice: null });
     },
 
-    /** 고친 내용을 버리고 변환 화면으로 돌아간다(결과는 그대로). */
-    cancelEdit(): void {
-      store.setState({ step: 'convert' });
+    /**
+     * 애니메이션 경로: 올린 픽셀 그림을 고치는 화면으로 간다.
+     * 먼저 픽셀 그림인지 확인해서 확대본은 원래 크기로 줄인다. 픽셀 그림이 아니면 안내만 띄운다.
+     */
+    editPixelArt(): void {
+      if (actions.preparePixelArt()) store.setState({ step: 'edit' });
     },
 
-    /** 고친 이미지를 변환 결과로 반영한다. 색 개수 표시를 위해 쓰인 색을 다시 센다. */
+    /** 고친 내용을 버리고 돌아간다(변환 결과나 올린 픽셀 그림은 그대로). */
+    cancelEdit(): void {
+      store.setState({ step: store.getState().mode === 'animate' ? 'animate' : 'convert' });
+    },
+
+    /**
+     * 고친 이미지를 반영한다. 애니메이션 경로는 올린 픽셀 그림을 바꾸고,
+     * 변환 경로는 변환 결과를 바꾼다(색 개수 표시를 위해 쓰인 색을 다시 센다).
+     */
     applyEdit(image: PixelBuffer): void {
+      if (store.getState().mode === 'animate') {
+        store.setState({ step: 'animate', pixelArt: image, notice: null });
+        return;
+      }
       store.setState({
         step: 'convert',
         converted: { image, palette: extractPalette(image) },
@@ -298,4 +313,5 @@ export function createActions(store: Store<AppState>) {
       }
     },
   };
+  return actions;
 }

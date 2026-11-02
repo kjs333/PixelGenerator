@@ -6,14 +6,16 @@ import { drawBuffer } from '../render';
 import type { Screen } from './types';
 
 /**
- * 결과 수정 화면: 변환한 픽셀 결과를 칸 단위로 고친다(붓은 1×1, 2×2 …).
- * 도구는 직접 그리기와 같은 paintEditor를 쓰고, 왼쪽에 지금 이미지에 쓰인 색과 원본을 보여 준다.
- * "적용"을 눌러야만 결과에 반영된다.
+ * 결과 수정 화면: 픽셀 그림을 칸 단위로 고친다(붓은 1×1, 2×2 …).
+ * 변환 경로는 변환 결과를, 애니메이션 경로는 올린 픽셀 그림을 고친다.
+ * 도구는 직접 그리기와 같은 paintEditor를 쓰고, 왼쪽에 지금 이미지에 쓰인 색과 (변환 경로면) 원본을 보여 준다.
+ * "적용"을 눌러야만 반영된다.
  */
 export const editScreen: Screen = (host, { store, actions }) => {
-  const converted = store.getState().converted;
-  if (!converted) {
-    // 결과가 없으면 고칠 것이 없다. 변환 화면으로 돌려보낸다.
+  const { mode, converted, pixelArt } = store.getState();
+  const target = mode === 'animate' ? pixelArt : converted?.image;
+  if (!target) {
+    // 고칠 그림이 없다. 앞 화면으로 돌려보낸다.
     queueMicrotask(() => actions.cancelEdit());
     return () => host.replaceChildren();
   }
@@ -22,14 +24,14 @@ export const editScreen: Screen = (host, { store, actions }) => {
   const usedColors = createUsedColors(() => editor);
   const editor = createPaintEditor({
     mode: 'pixel',
-    base: converted.image,
+    base: target,
     onChange: usedColors.render,
     onColorChange: usedColors.syncPressed,
   });
   usedColors.render();
 
   // ── 원본: 고칠 때 참고하도록 사용된 색 오른쪽에 작게 보여 준다 ──
-  const source = store.getState().source;
+  const source = mode === 'animate' ? null : store.getState().source;
   let originalPane: HTMLElement | null = null;
   if (source) {
     const originalCanvas = h('canvas', { class: 'original-canvas' });

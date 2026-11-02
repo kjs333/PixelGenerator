@@ -16,6 +16,8 @@ export const copy = {
   pixelUploadHint: '여기로 끌어다 놓거나\n클릭해서 고르세요',
   pixelUploadSpec: 'PNG 권장 · 가로·세로 256칸 이하 · 64색 이하\n(2·4·8배 확대본도 돼요)',
   pixelUploadChange: '그림 변경',
+  pixelArtEdit: '수정',
+  pixelArtEditTip: '올린 픽셀 그림을 칸 단위로 고쳐요',
   pixelArtPreview: '올린 픽셀 그림',
   pixelArtTip: '올린 픽셀 그림으로 애니메이션을 만들어요',
   pixelArtMissingTip: '먼저 픽셀 그림을 올려 주세요',

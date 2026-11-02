@@ -28,11 +28,13 @@ export const pixelUploadScreen: Screen = (host, { store, actions }) => {
   const previewCanvas = h('canvas', { class: 'pixel-preview-canvas' });
   const changeButton = h('button', { class: 'btn', type: 'button' }, copy.pixelUploadChange);
   changeButton.addEventListener('click', upload.openPicker);
+  const editButton = h('button', { class: 'btn', type: 'button', title: copy.pixelArtEditTip }, copy.pixelArtEdit);
+  editButton.addEventListener('click', () => actions.editPixelArt());
   const preview = h(
     'figure',
     { class: 'pixel-preview', 'aria-label': copy.pixelArtPreview },
     h('div', { class: 'pixel-preview-wrap' }, previewCanvas),
-    h('div', { class: 'pixel-preview-caption' }, changeButton),
+    h('div', { class: 'pixel-preview-caption' }, changeButton, editButton),
   );
 
   // 애니메이션 생성: 픽셀 그림인지 먼저 확인하고, 맞으면 동작 설명과 프레임 수를 묻는 창을 띄운다
