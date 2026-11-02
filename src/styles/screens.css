@@ -596,6 +596,13 @@
   display: block;
 }
 
+/* 글자 + 다운로드 아이콘 버튼(sprite, PNG zip, GIF) */
+.btn-download {
+  display: inline-flex;
+  gap: var(--space-1);
+  align-items: center;
+}
+
 /* 스포이드로 찍는 중: 색 선택 창은 숨기고, 그림 위 커서를 십자로 바꾸고, 안내 문구를 띄운다 */
 .modal-backdrop.is-picking {
   display: none;
@@ -732,6 +739,47 @@
 .dialog-note {
   margin: 0;
   font-size: 13px;
+}
+
+/* ── GIF 다운로드 창 ── */
+.gif-dialog {
+  width: auto;
+  min-width: 320px;
+  max-width: 90vw;
+}
+
+/* 미리보기 틀(.gif-preview-stage)은 가장 큰 배율(8배) 크기로 고정하고, 그림은 고른 배율의 실제 크기로 가운데에 둔다.
+   틀이 창보다 크면 바깥 영역 안에서 스크롤한다.
+   가운데 맞춤은 margin: auto로 한다(넘칠 때 왼쪽·위가 잘리지 않게). */
+.gif-preview-wrap {
+  display: flex;
+  min-width: 0;
+  max-height: 55vh;
+  overflow: auto;
+  border-radius: var(--radius);
+  background: var(--desk);
+}
+
+.gif-preview-stage {
+  display: flex;
+  flex: none;
+  margin: auto;
+}
+
+.gif-preview {
+  display: block;
+  flex: none;
+  margin: auto;
+  image-rendering: pixelated;
+}
+
+.gif-preview.checker {
+  background-color: var(--paper);
+  background-image:
+    linear-gradient(45deg, var(--paper-check) 25%, transparent 25%, transparent 75%, var(--paper-check) 75%),
+    linear-gradient(45deg, var(--paper-check) 25%, transparent 25%, transparent 75%, var(--paper-check) 75%);
+  background-position: 0 0, 8px 8px;
+  background-size: 16px 16px;
 }
 
 /* ── 스프라이트 시트 ── */

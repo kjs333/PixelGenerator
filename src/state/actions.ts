@@ -4,7 +4,7 @@ import {
   ANIMATION_TIMEOUT_MS,
 } from '../config/constants';
 import type { AnimationFrameCount } from '../core/animation';
-import { saveFramesZip, savePixelPng, saveSheetPng } from '../io/exportPng';
+import { saveAnimationGif, saveFramesZip, savePixelPng, saveSheetPng } from '../io/exportPng';
 import { decodeFrame, fetchAnimationJob, PixellabError, startAnimation } from '../io/pixellab';
 import { loadImage, LoadError } from '../io/loadImage';
 import { extractPalette } from '../core/palette';
@@ -287,6 +287,18 @@ export function createActions(store: Store<AppState>) {
         if (kind === 'sheet') await saveSheetPng(animation.frames);
         else await saveFramesZip(animation.frames);
         store.setState({ notice: null }); // 저장에 성공하면 따로 알리지 않는다
+      } catch {
+        store.setState({ notice: { kind: 'error', code: 'save-failed' } });
+      }
+    },
+
+    /** 지금 프레임(직접 고친 것 포함)을 fps 속도, scale배 크기의 GIF로 저장한다. 실패할 때만 알린다. */
+    exportGif(fps: number, scale: number): void {
+      const animation = store.getState().animation;
+      if (!animation || animation.startedAt !== null || animation.frames.length === 0) return;
+      try {
+        saveAnimationGif(animation.frames, fps, scale);
+        store.setState({ notice: null });
       } catch {
         store.setState({ notice: { kind: 'error', code: 'save-failed' } });
       }

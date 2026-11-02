@@ -5,6 +5,8 @@ import type { PixelBuffer } from '../../core/types';
 import type { AppState } from '../../state/store';
 import { openAnimateDialog } from '../components/animateDialog';
 import { openFrameEditor } from '../components/frameEditor';
+import { openGifDialog } from '../components/gifDialog';
+import { downloadIcon } from '../components/icons';
 import { renderNotice } from '../components/notice';
 import { topBar } from '../components/topBar';
 import { copy } from '../copy';
@@ -212,19 +214,34 @@ export const sheetScreen: Screen = (host, { store, actions }) => {
   const sheetWrap = h('div', { class: 'canvas-wrap sheet-wrap' }, empty, grid);
   const sheetInfo = h('p', { class: 'sheet-info muted' });
 
-  // 저장: 직접 고친 프레임까지 그대로 저장한다
-  const saveSheetButton = h(
-    'button',
-    { class: 'btn', type: 'button', title: copy.saveSheetTip },
-    copy.saveSheet,
-  );
+  // 저장: 직접 고친 프레임까지 그대로 저장한다. 버튼은 "형식 이름 + 다운로드 아이콘".
+  const downloadButton = (label: string, tip: string) =>
+    h(
+      'button',
+      { class: 'btn btn-download', type: 'button', title: tip, 'aria-label': `${label} ${copy.download}` },
+      label,
+      downloadIcon(),
+    );
+  const saveSheetButton = downloadButton(copy.saveSheet, copy.saveSheetTip);
   saveSheetButton.addEventListener('click', () => void actions.exportAnimation('sheet'));
-  const saveZipButton = h(
-    'button',
-    { class: 'btn', type: 'button', title: copy.saveZipTip },
-    copy.saveZip,
-  );
+  const saveZipButton = downloadButton(copy.saveZip, copy.saveZipTip);
   saveZipButton.addEventListener('click', () => void actions.exportAnimation('zip'));
+  // GIF는 미리보기와 저장 배율을 고르는 창을 먼저 띄운다. 속도는 오른쪽 미리보기의 FPS를 따른다.
+  let closeGif: (() => void) | null = null;
+  const saveGifButton = downloadButton(copy.saveGif, copy.saveGifTip);
+  saveGifButton.addEventListener('click', () => {
+    const frames = store.getState().animation?.frames;
+    if (!frames || frames.length === 0 || closeGif) return;
+    const gifFps = fps;
+    closeGif = openGifDialog({
+      frames,
+      fps: gifFps,
+      onSave: (scale) => actions.exportGif(gifFps, scale),
+      onClose: () => {
+        closeGif = null;
+      },
+    });
+  });
 
   let closeEditor: (() => void) | null = null;
 
@@ -389,7 +406,7 @@ export const sheetScreen: Screen = (host, { store, actions }) => {
         'figcaption',
         { class: 'pane-caption' },
         copy.sheetAll,
-        h('span', { class: 'export-controls' }, saveSheetButton, saveZipButton),
+        h('span', { class: 'export-controls' }, saveSheetButton, saveZipButton, saveGifButton),
       ),
       sheetWrap,
       sheetInfo,
@@ -452,6 +469,8 @@ export const sheetScreen: Screen = (host, { store, actions }) => {
     strip.classList.toggle('is-hidden', frames.length === 0);
     saveSheetButton.toggleAttribute('disabled', frames.length === 0);
     saveZipButton.toggleAttribute('disabled', frames.length === 0);
+    saveGifButton.toggleAttribute('disabled', frames.length === 0);
+    if (frames.length === 0) closeGif?.();
 
     // 만드는 중에는 1초마다 경과 시간을 고친다
     clearInterval(timer);
@@ -488,6 +507,7 @@ export const sheetScreen: Screen = (host, { store, actions }) => {
   return () => {
     closeDialog?.();
     closeEditor?.();
+    closeGif?.();
     document.removeEventListener('click', onDocumentClick);
     document.removeEventListener('keydown', onDocumentKey);
     cancelAnimationFrame(rafId);

@@ -38,6 +38,11 @@ export function homeIcon(): SVGSVGElement {
   return lineIcon(svg('path', { d: 'M3 11l9-8 9 8' }), svg('path', { d: 'M5 9.5V21h5v-6h4v6h5V9.5' }));
 }
 
+/** 다운로드 아이콘(아래 화살표와 받침). */
+export function downloadIcon(): SVGSVGElement {
+  return lineIcon(svg('path', { d: 'M12 3v12' }), svg('path', { d: 'M7 10l5 5 5-5' }), svg('path', { d: 'M4 17v3h16v-3' }));
+}
+
 /** 펜 아이콘(연필, 오른쪽 위에서 왼쪽 아래로). */
 export function penIcon(): SVGSVGElement {
   return lineIcon(svg('path', { d: 'M17.5 1.5l5 5L7.5 21.5H2.5v-5L17.5 1.5z' }), svg('path', { d: 'M14.5 4.5l5 5' }));

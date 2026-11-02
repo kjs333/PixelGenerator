@@ -347,11 +347,9 @@ export function createPaintEditor(opt: PaintEditorOptions): PaintEditor {
   canvas.addEventListener('pointercancel', commitStroke);
 
   // ── 도구 모음 ──
-  // 그리기·원본에 그리기 화면은 펜·지우개를 아이콘으로 보여 준다(이름은 aria-label과 title로 남긴다)
+  // 펜·지우개는 아이콘으로 보여 준다(이름은 aria-label과 title로 남긴다)
   const toolButton = (label: string, key: string, icon: () => SVGSVGElement) =>
-    isPixel
-      ? h('button', { class: 'btn tool', type: 'button', title: `${label} (${key})` }, label)
-      : h('button', { class: 'btn tool icon-btn', type: 'button', title: `${label} (${key})`, 'aria-label': label }, icon());
+    h('button', { class: 'btn tool icon-btn', type: 'button', title: `${label} (${key})`, 'aria-label': label }, icon());
   const penButton = toolButton(copy.drawPen, 'B', penIcon);
   const eraserButton = toolButton(copy.drawEraser, 'E', eraserIcon);
   const selectTool = (next: Tool) => {
@@ -406,7 +404,7 @@ export function createPaintEditor(opt: PaintEditorOptions): PaintEditor {
     min: 1,
     max: maxSize,
     value: size,
-    'aria-label': isPixel ? copy.brushSize : copy.drawSize,
+    'aria-label': copy.drawSize,
   });
   const sizeOutput = h('output', { class: 'value' }, isPixel ? `${size}×${size}` : '');
   sizeInput.addEventListener('input', () => {
@@ -455,9 +453,8 @@ export function createPaintEditor(opt: PaintEditorOptions): PaintEditor {
     { class: 'draw-tools' },
     penButton,
     eraserButton,
-    // 색 버튼에는 이미 aria-label이 있다. 그리기 화면에서는 앞의 "색" 글자를 뺀다.
-    isPixel ? h('span', { class: 'field' }, copy.drawColor, colorButton) : colorButton,
-    h('label', { class: 'field' }, isPixel ? copy.brushSize : copy.drawSize, sizeInput, sizeOutput),
+    colorButton, // 색 버튼에는 이미 aria-label이 있어서 앞에 "색" 글자를 붙이지 않는다
+    h('label', { class: 'field' }, copy.drawSize, sizeInput, sizeOutput),
     resetButton,
     undoButton,
     redoButton,

@@ -31,6 +31,12 @@ describe('animationFileName', () => {
     expect(animationFileName('frames', 48, 32, 16, date)).toBe('frames-48x32-16f-20261030-090807.zip');
   });
 
+  test('GIF는 gif이고 저장 배율이 붙는다', () => {
+    expect(animationFileName('anim', 32, 32, 8, date, 4)).toBe('anim-32x32-8f-x4-20261030-090807.gif');
+    expect(animationFileName('anim', 32, 32, 8, date)).toBe('anim-32x32-8f-x1-20261030-090807.gif');
+    expect(() => animationFileName('anim', 32, 32, 8, date, 0)).toThrow(RangeError);
+  });
+
   test('크기나 프레임 수가 1 미만이면 오류를 낸다', () => {
     expect(() => animationFileName('sheet', 0, 32, 8)).toThrow(RangeError);
     expect(() => animationFileName('frames', 32, 32, 0)).toThrow(RangeError);

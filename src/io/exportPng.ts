@@ -2,6 +2,7 @@ import { SHEET_COLUMNS } from '../config/constants';
 import { buildSheet } from '../core/spritesheet';
 import { scaleBuffer } from '../core/scale';
 import type { PixelBuffer } from '../core/types';
+import { encodeGif, gifDelay } from './gif';
 import { createZip } from './zip';
 
 const REVOKE_DELAY_MS = 1000; // 다운로드가 시작되기 전에 주소를 없애지 않도록 잠시 둔다
@@ -33,20 +34,24 @@ export function exportFileName(width: number, height: number, scale: number, dat
 
 /**
  * 애니메이션 저장 파일 이름. 프레임 한 칸의 크기와 프레임 수를 넣는다.
- * 예: sheet-32x32-8f-20261028-150102.png, frames-32x32-8f-20261028-150102.zip
+ * 예: sheet-32x32-8f-20261028-150102.png, frames-32x32-8f-20261028-150102.zip,
+ * anim-32x32-8f-x4-20261028-150102.gif(GIF만 저장 배율이 붙는다)
  */
 export function animationFileName(
-  kind: 'sheet' | 'frames',
+  kind: 'sheet' | 'frames' | 'anim',
   frameWidth: number,
   frameHeight: number,
   count: number,
   date: Date = new Date(),
+  scale = 1,
 ): string {
   assertPositiveInt('가로', frameWidth);
   assertPositiveInt('세로', frameHeight);
   assertPositiveInt('프레임 수', count);
-  const ext = kind === 'sheet' ? 'png' : 'zip';
-  return `${kind}-${frameWidth}x${frameHeight}-${count}f-${timeStamp(date)}.${ext}`;
+  assertPositiveInt('배율', scale);
+  const ext = { sheet: 'png', frames: 'zip', anim: 'gif' }[kind];
+  const scaled = kind === 'anim' ? `-x${scale}` : '';
+  return `${kind}-${frameWidth}x${frameHeight}-${count}f${scaled}-${timeStamp(date)}.${ext}`;
 }
 
 /** zip 안의 낱장 이름. 순서대로 정렬되도록 자릿수를 맞춘다. 예: frame-01.png */
@@ -106,5 +111,22 @@ export async function saveFramesZip(frames: PixelBuffer[]): Promise<void> {
   download(
     new Blob([zip as BlobPart], { type: 'application/zip' }),
     animationFileName('frames', frames[0]!.width, frames[0]!.height, frames.length),
+  );
+}
+
+/** 프레임을 FPS 속도로 무한 반복하는 GIF로 만든다. 배율 1이 원래 크기다. */
+export function animationGif(frames: PixelBuffer[], fps: number, scale: number): Blob {
+  const gif = encodeGif(
+    frames.map((frame) => scaleBuffer(frame, scale)),
+    gifDelay(fps),
+  );
+  return new Blob([gif as BlobPart], { type: 'image/gif' });
+}
+
+/** 애니메이션 GIF를 내려받는다. 파일 이름의 크기는 확대 전 프레임 크기다. */
+export function saveAnimationGif(frames: PixelBuffer[], fps: number, scale: number): void {
+  download(
+    animationGif(frames, fps, scale),
+    animationFileName('anim', frames[0]!.width, frames[0]!.height, frames.length, new Date(), scale),
   );
 }
